@@ -2,10 +2,7 @@ import re
 
 import pytest
 
-from app import create_app
 from app.models.repositories import CustomerRepository
-from app.models.repositories.db import init_db
-from config import TestConfig
 from tests.conftest import PASSWORD, login
 
 REGISTRATION = {
@@ -113,10 +110,8 @@ def test_login_follows_local_next_only(client, customer):
     assert "evil.example.com" not in outside.headers["Location"]
 
 
-def test_post_without_csrf_token_is_rejected(tmp_path):
-    app = create_app(TestConfig, CSRF_ENABLED=True, DATABASE=str(tmp_path / "csrf.sqlite"))
-    with app.app_context():
-        init_db()
+def test_post_without_csrf_token_is_rejected(make_app):
+    app = make_app(CSRF_ENABLED=True)
     client = app.test_client()
 
     assert client.post("/account/login", data={"email": "a@b.no", "password": "x"}).status_code == 400

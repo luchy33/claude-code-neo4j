@@ -2,11 +2,8 @@ import re
 
 import pytest
 
-from app import create_app
 from app.models import EventCategory, FoodItem
 from app.models.repositories import FoodItemRepository
-from app.models.repositories.db import init_db
-from config import TestConfig
 from tests.conftest import login
 
 
@@ -138,10 +135,9 @@ def test_cart_survives_login_and_is_emptied_on_logout(client, food_item, custome
     assert "Your cart is empty" in cart_page(client)
 
 
-def test_cart_with_csrf_enabled(tmp_path):
-    app = create_app(TestConfig, CSRF_ENABLED=True, DATABASE=str(tmp_path / "csrf.sqlite"))
+def test_cart_with_csrf_enabled(make_app):
+    app = make_app(CSRF_ENABLED=True)
     with app.app_context():
-        init_db()
         item = FoodItemRepository().add(FoodItem(name_en="Fish soup", name_no="Fiskesuppe", price_nok=189,
                                                  categories={EventCategory.CONFERENCE}, min_order_quantity=10))
     client = app.test_client()

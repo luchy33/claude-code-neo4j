@@ -1,0 +1,25 @@
+# Neo4j for Ekte Mat Online. Start with: docker compose up -d
+services:
+  # Dev database, filled by `python seed.py`. Browser: http://localhost:7474
+  neo4j:
+    image: neo4j:5.26
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-ektemat-dev-db}  # dev default, same as config.py
+    volumes:
+      - neo4j-data:/data
+
+  # Test database for pytest only. Wiped before every test, nothing is kept on disk.
+  neo4j-test:
+    image: neo4j:5.26
+    ports:
+      - "7688:7687"
+    environment:
+      NEO4J_AUTH: neo4j/ektemat-test  # local test container only, not a secret
+    tmpfs:
+      - /data
+
+volumes:
+  neo4j-data:

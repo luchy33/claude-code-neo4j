@@ -3,11 +3,8 @@ from datetime import date, timedelta
 
 import pytest
 
-from app import create_app
 from app.models import EventCategory, FoodItem, OrderStatus, PaymentStatus
 from app.models.repositories import FoodItemRepository, OrderRepository
-from app.models.repositories.db import init_db
-from config import TestConfig
 from tests.conftest import PASSWORD, _add_customer, login
 
 
@@ -110,11 +107,10 @@ def test_dashboard_shows_waiting_orders(admin_client, customer, make_order):
     assert "1 waiting for approval" in admin_client.get("/admin/").get_data(as_text=True)
 
 
-def test_end_to_end_with_csrf(tmp_path):
+def test_end_to_end_with_csrf(make_app):
     """Cart → log in → checkout → admin approves → customer sees it, all with CSRF tokens."""
-    app = create_app(TestConfig, CSRF_ENABLED=True, DATABASE=str(tmp_path / "e2e.sqlite"))
+    app = make_app(CSRF_ENABLED=True)
     with app.app_context():
-        init_db()
         item = FoodItemRepository().add(FoodItem(name_en="Fish soup", name_no="Fiskesuppe", price_nok=189,
                                                  categories={EventCategory.CONFERENCE}, min_order_quantity=10))
     customer = _add_customer(app, name="Kari", email="kari@example.com")

@@ -1,11 +1,8 @@
 import re
 from datetime import date, datetime, timedelta
 
-from app import create_app
 from app.models import EventCategory, FoodItem, Question
 from app.models.repositories import FoodItemRepository, QuestionRepository
-from app.models.repositories.db import init_db
-from config import TestConfig
 from tests.conftest import PASSWORD, _add_customer, login
 
 
@@ -214,11 +211,10 @@ def test_repository_queries(app, customer, make_order):
 
 # ----------------------------------------------------------------- end to end
 
-def test_question_end_to_end_with_csrf(tmp_path):
+def test_question_end_to_end_with_csrf(make_app):
     """Customer orders and asks → admin answers → customer reads the answer, all with CSRF tokens."""
-    app = create_app(TestConfig, CSRF_ENABLED=True, DATABASE=str(tmp_path / "e2e.sqlite"))
+    app = make_app(CSRF_ENABLED=True)
     with app.app_context():
-        init_db()
         item = FoodItemRepository().add(FoodItem(name_en="Fish soup", name_no="Fiskesuppe", price_nok=189,
                                                  categories={EventCategory.CONFERENCE}, min_order_quantity=10))
     customer = _add_customer(app, name="Kari", email="kari@example.com")

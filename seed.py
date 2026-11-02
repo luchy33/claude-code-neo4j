@@ -1,12 +1,15 @@
 """Reset the database and fill it with synthetic data.
 
 Usage: python seed.py
-WARNING: drops all tables first. Synthetic data only – no real customers.
+WARNING: deletes all data in the Neo4j database first. Synthetic data only – no real customers.
 """
 import os
 import shutil
+import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
+
+from neo4j.exceptions import AuthError, ServiceUnavailable
 
 from app import create_app
 from app.models import (Allergen as A, Customer, DeliveryMethod, DietaryLabel as D,
@@ -14,7 +17,7 @@ from app.models import (Allergen as A, Customer, DeliveryMethod, DietaryLabel as
                         OrderStatus as S, PaymentStatus as P, Question)
 from app.models.repositories import (CustomerRepository, FoodItemRepository, ImageStore, OrderRepository,
                                      QuestionRepository)
-from app.models.repositories.db import init_db
+from app.models.repositories.db import init_db, verify_connection
 
 DEV_PASSWORD = "ektemat-dev"
 
@@ -75,7 +78,11 @@ def main() -> None:
 
     app = create_app()
     with app.app_context():
-        print(f"Resetting database at {app.config['DATABASE']} (all data and uploaded images are deleted).")
+        print(f"Resetting Neo4j at {app.config['NEO4J_URI']} (all data and uploaded images are deleted).")
+        try:
+            verify_connection()
+        except (ServiceUnavailable, AuthError) as error:
+            sys.exit(f"Cannot reach Neo4j: {error}\nStart it with: docker compose up -d neo4j")
         init_db()
         shutil.rmtree(app.config["UPLOAD_FOLDER"], ignore_errors=True)  # images belonged to the old data
 

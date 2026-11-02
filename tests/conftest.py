@@ -1,20 +1,48 @@
 import pytest
+from neo4j import GraphDatabase
+from neo4j.exceptions import AuthError, ServiceUnavailable
 
 from app import create_app
 from app.models import Customer, EventCategory, FoodItem
 from app.models.repositories import CustomerRepository, FoodItemRepository
-from app.models.repositories.db import init_db
-from config import TestConfig
+from app.models.repositories.db import close_driver, init_db
+from config import Config, TestConfig
 
 PASSWORD = "secret-pass-1"
 
 
+@pytest.fixture(scope="session")
+def neo4j_available():
+    """Skip database tests when the neo4j-test container is not running."""
+    if TestConfig.NEO4J_URI == Config.NEO4J_URI:
+        pytest.exit("TEST_NEO4J_URI points at the dev database. The tests would delete its data.", returncode=1)
+    try:
+        with GraphDatabase.driver(TestConfig.NEO4J_URI,
+                                  auth=(TestConfig.NEO4J_USER, TestConfig.NEO4J_PASSWORD)) as driver:
+            driver.verify_connectivity()
+    except (ServiceUnavailable, AuthError, OSError) as error:
+        pytest.skip(f"Neo4j test database not reachable ({error}) – run: docker compose up -d neo4j-test")
+
+
 @pytest.fixture
-def app(tmp_path):
-    app = create_app(TestConfig, DATABASE=str(tmp_path / "test.sqlite"), UPLOAD_FOLDER=str(tmp_path / "uploads"))
-    with app.app_context():
-        init_db()
-    yield app
+def make_app(neo4j_available, tmp_path):
+    """make_app(**overrides): an app on an empty test database. Every call starts from scratch."""
+    apps = []
+
+    def make(**overrides):
+        app = create_app(TestConfig, UPLOAD_FOLDER=str(tmp_path / "uploads"), **overrides)
+        with app.app_context():
+            init_db()
+        apps.append(app)
+        return app
+    yield make
+    for app in apps:
+        close_driver(app)
+
+
+@pytest.fixture
+def app(make_app):
+    return make_app()
 
 
 @pytest.fixture

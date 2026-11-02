@@ -11,7 +11,7 @@ It has a customer shop (menu by event, cart, orders, questions) and an admin pan
 ## MVC layout
 
 - `app/models/` – domain classes (FoodItem, Order, OrderLine, Customer, Question …) and repositories
-- `app/models/repositories/` – the only code that touches storage: SQLite now (Neo4j in Oblig 5), image files (`ImageStore`) and the session cart (`SessionCartRepository`)
+- `app/models/repositories/` – the only code that touches storage: Neo4j (`db.py`, `schema.cypher`), image files (`ImageStore`) and the session cart (`SessionCartRepository`)
 - `app/models/services/` – external services: the Claude image generator (`claude-opus-5-5`, draws SVG)
 - `app/controllers/` – Flask blueprints: `shop`, `account`, `admin`; `auth.py` has login/admin decorators and CSRF
 - `app/templates/` – Jinja2 views, one folder per blueprint
@@ -23,6 +23,7 @@ It has a customer shop (menu by event, cart, orders, questions) and an admin pan
 ```bash
 python -m venv .venv && source .venv/bin/activate   # Windows PowerShell: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+docker compose up -d         # Neo4j dev (7687, browser 7474) + neo4j-test (7688)
 python seed.py               # resets DB + uploads: synthetic food items, one admin, test customers
 flask --app app run          # http://127.0.0.1:5000
 pytest
@@ -34,6 +35,7 @@ pytest
 - Every feature has pytest tests in `tests/`.
 - Larger features start in plan mode; the agreed plan is saved in `docs/plans/`.
 - Never commit secrets or API keys; use `.env` (listed in `.gitignore`).
+- Tests use only the separate `neo4j-test` container (port 7688), never the dev database; they are skipped when it is not running.
 - Tests never call the Claude API; they use `FakeImageGenerator` (`IMAGE_GENERATOR=fake`).
 - Every POST form includes `csrf_token()`; admin routes use `@admin_required`.
 - Generated or uploaded images are untrusted: SVG only via `sanitise_svg`, served only through `image_response`.

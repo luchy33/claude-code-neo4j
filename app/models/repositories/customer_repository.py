@@ -1,59 +1,59 @@
-from datetime import datetime
 from typing import Optional
 
 from app.models.customer import Customer
-from app.models.repositories.db import get_db
+from app.models.repositories.db import next_ids, query, to_db_time, to_native, write
 
 
 class CustomerRepository:
     def add(self, customer: Customer) -> Customer:
-        db = get_db()
-        cur = db.execute(
-            "INSERT INTO customer (name, email, phone, customer_type, organisation_number,"
-            " password_hash, is_admin, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (customer.name, customer.email, customer.phone, customer.customer_type,
-             customer.organisation_number, customer.password_hash, int(customer.is_admin),
-             customer.created_at.isoformat(timespec="seconds")),
-        )
-        db.commit()
-        customer.id = cur.lastrowid
+        props = {
+            "name": customer.name, "email": customer.email, "phone": customer.phone,
+            "customer_type": customer.customer_type, "organisation_number": customer.organisation_number,
+            "password_hash": customer.password_hash, "is_admin": customer.is_admin,
+            "created_at": to_db_time(customer.created_at),
+        }
+
+        def create(tx):
+            [customer_id] = next_ids(tx, "Customer")
+            tx.run("CREATE (c:Customer {id: $id}) SET c += $props", id=customer_id, props=props).consume()
+            return customer_id
+
+        customer.id = write(create)
         return customer
 
     def get(self, customer_id: int) -> Optional[Customer]:
-        row = get_db().execute("SELECT * FROM customer WHERE id = ?", (customer_id,)).fetchone()
-        return self._to_customer(row) if row else None
+        return self._one("MATCH (c:Customer {id: $value}) RETURN c", customer_id)
 
     def get_by_email(self, email: str) -> Optional[Customer]:
-        row = get_db().execute("SELECT * FROM customer WHERE email = ?", (email,)).fetchone()
-        return self._to_customer(row) if row else None
+        return self._one("MATCH (c:Customer {email: $value}) RETURN c", email)
 
     def get_by_organisation_number(self, organisation_number: str) -> Optional[Customer]:
-        row = get_db().execute("SELECT * FROM customer WHERE organisation_number = ?",
-                               (organisation_number,)).fetchone()
-        return self._to_customer(row) if row else None
+        return self._one("MATCH (c:Customer {organisation_number: $value}) RETURN c", organisation_number)
 
     def get_many(self, ids) -> dict[int, Customer]:
         ids = list(set(ids))
         if not ids:
             return {}
-        placeholders = ", ".join("?" * len(ids))
-        rows = get_db().execute(f"SELECT * FROM customer WHERE id IN ({placeholders})", ids).fetchall()
-        return {row["id"]: self._to_customer(row) for row in rows}
+        records = query("MATCH (c:Customer) WHERE c.id IN $ids RETURN c", ids=ids)
+        return {r["c"]["id"]: self._to_customer(r["c"]) for r in records}
 
     def list_all(self) -> list[Customer]:
-        rows = get_db().execute("SELECT * FROM customer ORDER BY name").fetchall()
-        return [self._to_customer(r) for r in rows]
+        return [self._to_customer(r["c"]) for r in query("MATCH (c:Customer) RETURN c ORDER BY c.name")]
+
+    def _one(self, cypher: str, value) -> Optional[Customer]:
+        records = query(cypher, value=value)
+        return self._to_customer(records[0]["c"]) if records else None
 
     @staticmethod
-    def _to_customer(row) -> Customer:
+    def _to_customer(node) -> Customer:
         return Customer(
-            id=row["id"],
-            name=row["name"],
-            email=row["email"],
-            phone=row["phone"],
-            customer_type=row["customer_type"],
-            organisation_number=row["organisation_number"],
-            password_hash=row["password_hash"],
-            is_admin=bool(row["is_admin"]),
-            created_at=datetime.fromisoformat(row["created_at"]),
+            id=node["id"],
+            name=node["name"],
+            email=node["email"],
+            phone=node.get("phone"),
+            customer_type=node["customer_type"],
+            organisation_number=node.get("organisation_number"),
+            password_hash=node["password_hash"],
+            is_admin=node["is_admin"],
+            created_at=to_native(node["created_at"]),
         )

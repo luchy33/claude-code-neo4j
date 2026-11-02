@@ -1,81 +1,87 @@
-from datetime import datetime
 from typing import Optional
 
 from app.models.question import Question
-from app.models.repositories.db import get_db
+from app.models.repositories.db import next_ids, query, to_db_time, to_native, write
+
+# Every question with its order and (if the customer still exists) the customer who asked it.
+MATCH_QUESTION = "MATCH (q:Question)-[:ABOUT]->(o:Order)"
+QUESTION = "OPTIONAL MATCH (c:Customer)-[:ASKED]->(q) RETURN q {.*, order_id: o.id, customer_id: c.id} AS question"
 
 
 class QuestionRepository:
     def add(self, question: Question) -> Question:
-        db = get_db()
-        cur = db.execute(
-            "INSERT INTO question (order_id, customer_id, name, email, subject, body, answer, created_at, answered_at)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (question.order_id, question.customer_id, question.name, question.email, question.subject,
-             question.body, question.answer, question.created_at.isoformat(timespec="seconds"),
-             question.answered_at.isoformat(timespec="seconds") if question.answered_at else None),
-        )
-        db.commit()
-        question.id = cur.lastrowid
+        def create(tx):
+            [question_id] = next_ids(tx, "Question")
+            created = tx.run(
+                "MATCH (o:Order {id: $order_id}) CREATE (q:Question {id: $id})-[:ABOUT]->(o) SET q += $props RETURN q",
+                order_id=question.order_id, id=question_id,
+                props={"name": question.name, "email": question.email, "subject": question.subject,
+                       "body": question.body, "answer": question.answer,
+                       "created_at": to_db_time(question.created_at),
+                       "answered_at": to_db_time(question.answered_at)},
+            ).single()
+            if created is None:
+                raise ValueError(f"Unknown order {question.order_id}.")
+            if question.customer_id is not None:
+                tx.run("MATCH (c:Customer {id: $customer_id}), (q:Question {id: $id}) CREATE (c)-[:ASKED]->(q)",
+                       customer_id=question.customer_id, id=question_id).consume()
+            return question_id
+
+        question.id = write(create)
         return question
 
     def get(self, question_id: int) -> Optional[Question]:
-        row = get_db().execute("SELECT * FROM question WHERE id = ?", (question_id,)).fetchone()
-        return self._to_question(row) if row else None
+        records = query(f"{MATCH_QUESTION} WHERE q.id = $id {QUESTION}", id=question_id)
+        return self._to_question(records[0]["question"]) if records else None
 
     def list_by_order(self, order_id: int) -> list[Question]:
         """Oldest first, so the conversation reads from top to bottom."""
-        rows = get_db().execute("SELECT * FROM question WHERE order_id = ? ORDER BY created_at, id",
-                                (order_id,)).fetchall()
-        return [self._to_question(r) for r in rows]
+        records = query(f"{MATCH_QUESTION} WHERE o.id = $order_id {QUESTION} ORDER BY q.created_at, q.id",
+                        order_id=order_id)
+        return [self._to_question(r["question"]) for r in records]
 
     def search(self, answered: Optional[bool] = None) -> list[Question]:
         """Unanswered questions first, then newest first."""
         where = ""
         if answered is True:
-            where = " WHERE answer IS NOT NULL"
+            where = " WHERE q.answer IS NOT NULL"
         elif answered is False:
-            where = " WHERE answer IS NULL"
-        rows = get_db().execute(
-            f"SELECT * FROM question{where} ORDER BY answer IS NOT NULL, created_at DESC, id DESC"
-        ).fetchall()
-        return [self._to_question(r) for r in rows]
+            where = " WHERE q.answer IS NULL"
+        records = query(f"{MATCH_QUESTION}{where} {QUESTION}"
+                        " ORDER BY q.answer IS NOT NULL, q.created_at DESC, q.id DESC")
+        return [self._to_question(r["question"]) for r in records]
 
     def list_all(self) -> list[Question]:
         return self.search()
 
     def save_answer(self, question: Question) -> None:
-        db = get_db()
-        db.execute("UPDATE question SET answer = ?, answered_at = ? WHERE id = ?",
-                   (question.answer, question.answered_at.isoformat(timespec="seconds"), question.id))
-        db.commit()
+        query("MATCH (q:Question {id: $id}) SET q.answer = $answer, q.answered_at = $answered_at",
+              id=question.id, answer=question.answer, answered_at=to_db_time(question.answered_at))
 
     def count_unanswered(self) -> int:
-        return get_db().execute("SELECT COUNT(*) FROM question WHERE answer IS NULL").fetchone()[0]
+        return query("MATCH (q:Question) WHERE q.answer IS NULL RETURN count(q) AS n")[0]["n"]
 
     def count_by_order(self, order_ids) -> dict[int, tuple[int, int]]:
         """order id -> (number of questions, number still unanswered)."""
         ids = list(set(order_ids))
         if not ids:
             return {}
-        placeholders = ", ".join("?" * len(ids))
-        rows = get_db().execute(
-            f"SELECT order_id, COUNT(*), SUM(answer IS NULL) FROM question WHERE order_id IN ({placeholders})"
-            " GROUP BY order_id", ids,
-        ).fetchall()
-        return {row[0]: (row[1], row[2]) for row in rows}
+        records = query(f"{MATCH_QUESTION} WHERE o.id IN $ids"
+                        " RETURN o.id AS order_id, count(q) AS total,"
+                        " sum(CASE WHEN q.answer IS NULL THEN 1 ELSE 0 END) AS unanswered", ids=ids)
+        return {r["order_id"]: (r["total"], r["unanswered"]) for r in records}
 
     @staticmethod
-    def _to_question(row) -> Question:
+    def _to_question(data) -> Question:
         return Question(
-            id=row["id"],
-            order_id=row["order_id"],
-            customer_id=row["customer_id"],
-            name=row["name"],
-            email=row["email"],
-            subject=row["subject"],
-            body=row["body"],
-            answer=row["answer"],
-            created_at=datetime.fromisoformat(row["created_at"]),
-            answered_at=datetime.fromisoformat(row["answered_at"]) if row["answered_at"] else None,
+            id=data["id"],
+            order_id=data["order_id"],
+            customer_id=data["customer_id"],
+            name=data["name"],
+            email=data["email"],
+            subject=data["subject"],
+            body=data["body"],
+            answer=data.get("answer"),
+            created_at=to_native(data["created_at"]),
+            answered_at=to_native(data.get("answered_at")),
         )

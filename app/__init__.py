@@ -12,9 +12,8 @@ def create_app(config_class=Config, **overrides):
     app.config.update(overrides)
 
     os.makedirs(app.instance_path, exist_ok=True)
-    for key in ("DATABASE", "UPLOAD_FOLDER"):
-        if not os.path.isabs(app.config[key]):
-            app.config[key] = os.path.join(app.instance_path, app.config[key])
+    if not os.path.isabs(app.config["UPLOAD_FOLDER"]):
+        app.config["UPLOAD_FOLDER"] = os.path.join(app.instance_path, app.config["UPLOAD_FOLDER"])
 
     from app.models.repositories import db
     db.init_app(app)

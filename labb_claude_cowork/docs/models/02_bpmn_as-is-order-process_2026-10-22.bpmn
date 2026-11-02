@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" id="Defs_asis" targetNamespace="http://ektemat.example/bpmn" exporter="EkteMat INFO212 generator" exporterVersion="1.0">
+<bpmn:collaboration id="Collab_asis">
+<bpmn:participant id="P_Customer" name="Customer" processRef="Proc_P_Customer" />
+<bpmn:participant id="P_EkteMat" name="Ekte Mat AS" processRef="Proc_P_EkteMat" />
+<bpmn:messageFlow id="Msg_1" name="Request" sourceRef="c_send" targetRef="e_start" />
+<bpmn:messageFlow id="Msg_2" name="Alternative date" sourceRef="e_alt" targetRef="P_Customer" />
+<bpmn:messageFlow id="Msg_3" name="Quote (PDF)" sourceRef="e_quote" targetRef="c_quote" />
+<bpmn:messageFlow id="Msg_4" name="Acceptance" sourceRef="c_acc" targetRef="e_acc" />
+<bpmn:messageFlow id="Msg_5" name="Decline" sourceRef="c_dec" targetRef="e_dec" />
+<bpmn:messageFlow id="Msg_6" name="Deposit request" sourceRef="e_dep" targetRef="c_pay" />
+<bpmn:messageFlow id="Msg_7" name="Changes" sourceRef="c_chg" targetRef="e_upd" />
+<bpmn:messageFlow id="Msg_8" name="Confirmation call" sourceRef="e_call" targetRef="c_conf" />
+<bpmn:messageFlow id="Msg_9" name="Food" sourceRef="d_del" targetRef="c_food" />
+<bpmn:messageFlow id="Msg_10" name="Invoice / Vipps request" sourceRef="e_inv" targetRef="c_payinv" />
+<bpmn:textAnnotation id="Ann_legend"><bpmn:text>Red task = step with a problem reported by a stakeholder (P1-P12). See 02_bpmn_problem-to-story-mapping_2026-10-22.md.</bpmn:text></bpmn:textAnnotation>
+<bpmn:textAnnotation id="Ann_driver"><bpmn:text>Not marked: no problem reported; the driver was not interviewed (ISS-13).</bpmn:text></bpmn:textAnnotation>
+<bpmn:textAnnotation id="Ann_owner"><bpmn:text>Not marked: no stakeholder complaint documented for this step.</bpmn:text></bpmn:textAnnotation>
+</bpmn:collaboration>
+<bpmn:process id="Proc_P_Customer" isExecutable="false">
+<bpmn:startEvent id="c_start" name="Catering need arises"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 1 (trigger INFERRED)</bpmn:documentation><bpmn:outgoing>Flow_asis_1</bpmn:outgoing></bpmn:startEvent>
+<bpmn:task id="c_send" name="P1 · Send request by e-mail, phone or web form"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 1; 03_landscape_current-it_2026-10-20.txt 'Website'</bpmn:documentation><bpmn:incoming>Flow_asis_1</bpmn:incoming><bpmn:outgoing>Flow_asis_2</bpmn:outgoing></bpmn:task>
+<bpmn:intermediateCatchEvent id="c_quote" name="Quote received"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 4</bpmn:documentation><bpmn:incoming>Flow_asis_2</bpmn:incoming><bpmn:outgoing>Flow_asis_3</bpmn:outgoing><bpmn:messageEventDefinition id="c_quote_def" /></bpmn:intermediateCatchEvent>
+<bpmn:exclusiveGateway id="c_gw" name="Accept quote?"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 5</bpmn:documentation><bpmn:incoming>Flow_asis_3</bpmn:incoming><bpmn:outgoing>Flow_asis_4</bpmn:outgoing><bpmn:outgoing>Flow_asis_5</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="c_acc" name="P5 · Accept quote by e-mail (no confirmation sent)"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 5; 04_dataset_customer-emails_2026-10-20.csv E011</bpmn:documentation><bpmn:incoming>Flow_asis_4</bpmn:incoming><bpmn:outgoing>Flow_asis_7</bpmn:outgoing></bpmn:task>
+<bpmn:task id="c_dec" name="Decline quote"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 5 ('If the customer accepts' - decline branch INFERRED)</bpmn:documentation><bpmn:incoming>Flow_asis_5</bpmn:incoming><bpmn:outgoing>Flow_asis_6</bpmn:outgoing></bpmn:task>
+<bpmn:endEvent id="c_enddec" name="Not booked"><bpmn:documentation>Source: INFERRED</bpmn:documentation><bpmn:incoming>Flow_asis_6</bpmn:incoming></bpmn:endEvent>
+<bpmn:exclusiveGateway id="c_gwW" name="Wedding booking?"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 6</bpmn:documentation><bpmn:incoming>Flow_asis_7</bpmn:incoming><bpmn:outgoing>Flow_asis_8</bpmn:outgoing><bpmn:outgoing>Flow_asis_9</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="c_pay" name="Pay deposit by Vipps"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 6</bpmn:documentation><bpmn:incoming>Flow_asis_8</bpmn:incoming><bpmn:outgoing>Flow_asis_10</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="c_mW" name=""><bpmn:documentation>Merge gateway</bpmn:documentation><bpmn:incoming>Flow_asis_9</bpmn:incoming><bpmn:incoming>Flow_asis_10</bpmn:incoming><bpmn:outgoing>Flow_asis_11</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:exclusiveGateway id="c_gwC" name="Changes needed?"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 8</bpmn:documentation><bpmn:incoming>Flow_asis_11</bpmn:incoming><bpmn:outgoing>Flow_asis_12</bpmn:outgoing><bpmn:outgoing>Flow_asis_13</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="c_chg" name="P9 · Report changes by phone or e-mail"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 8; 04_dataset_customer-emails_2026-10-20.csv E003</bpmn:documentation><bpmn:incoming>Flow_asis_12</bpmn:incoming><bpmn:outgoing>Flow_asis_14</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="c_mC" name=""><bpmn:documentation>Merge gateway</bpmn:documentation><bpmn:incoming>Flow_asis_13</bpmn:incoming><bpmn:incoming>Flow_asis_14</bpmn:incoming><bpmn:outgoing>Flow_asis_15</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="c_conf" name="Confirm final guest numbers by phone"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 9</bpmn:documentation><bpmn:incoming>Flow_asis_15</bpmn:incoming><bpmn:outgoing>Flow_asis_16</bpmn:outgoing></bpmn:task>
+<bpmn:intermediateCatchEvent id="c_food" name="Food delivered"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 10</bpmn:documentation><bpmn:incoming>Flow_asis_16</bpmn:incoming><bpmn:outgoing>Flow_asis_17</bpmn:outgoing><bpmn:messageEventDefinition id="c_food_def" /></bpmn:intermediateCatchEvent>
+<bpmn:task id="c_payinv" name="Pay invoice or Vipps request"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 11</bpmn:documentation><bpmn:incoming>Flow_asis_17</bpmn:incoming><bpmn:outgoing>Flow_asis_18</bpmn:outgoing></bpmn:task>
+<bpmn:endEvent id="c_end" name="Order completed"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 11</bpmn:documentation><bpmn:incoming>Flow_asis_18</bpmn:incoming></bpmn:endEvent>
+<bpmn:sequenceFlow id="Flow_asis_1" name="" sourceRef="c_start" targetRef="c_send" />
+<bpmn:sequenceFlow id="Flow_asis_2" name="" sourceRef="c_send" targetRef="c_quote" />
+<bpmn:sequenceFlow id="Flow_asis_3" name="" sourceRef="c_quote" targetRef="c_gw" />
+<bpmn:sequenceFlow id="Flow_asis_4" name="Yes" sourceRef="c_gw" targetRef="c_acc" />
+<bpmn:sequenceFlow id="Flow_asis_5" name="No" sourceRef="c_gw" targetRef="c_dec" />
+<bpmn:sequenceFlow id="Flow_asis_6" name="" sourceRef="c_dec" targetRef="c_enddec" />
+<bpmn:sequenceFlow id="Flow_asis_7" name="" sourceRef="c_acc" targetRef="c_gwW" />
+<bpmn:sequenceFlow id="Flow_asis_8" name="Yes" sourceRef="c_gwW" targetRef="c_pay" />
+<bpmn:sequenceFlow id="Flow_asis_9" name="No" sourceRef="c_gwW" targetRef="c_mW" />
+<bpmn:sequenceFlow id="Flow_asis_10" name="" sourceRef="c_pay" targetRef="c_mW" />
+<bpmn:sequenceFlow id="Flow_asis_11" name="" sourceRef="c_mW" targetRef="c_gwC" />
+<bpmn:sequenceFlow id="Flow_asis_12" name="Yes" sourceRef="c_gwC" targetRef="c_chg" />
+<bpmn:sequenceFlow id="Flow_asis_13" name="No" sourceRef="c_gwC" targetRef="c_mC" />
+<bpmn:sequenceFlow id="Flow_asis_14" name="" sourceRef="c_chg" targetRef="c_mC" />
+<bpmn:sequenceFlow id="Flow_asis_15" name="" sourceRef="c_mC" targetRef="c_conf" />
+<bpmn:sequenceFlow id="Flow_asis_16" name="" sourceRef="c_conf" targetRef="c_food" />
+<bpmn:sequenceFlow id="Flow_asis_17" name="" sourceRef="c_food" targetRef="c_payinv" />
+<bpmn:sequenceFlow id="Flow_asis_18" name="" sourceRef="c_payinv" targetRef="c_end" />
+</bpmn:process>
+<bpmn:process id="Proc_P_EkteMat" isExecutable="false">
+<bpmn:laneSet id="LS_P_EkteMat">
+<bpmn:lane id="L_Coord" name="Event coordinator"><bpmn:flowNodeRef>e_start</bpmn:flowNodeRef><bpmn:flowNodeRef>e_read</bpmn:flowNodeRef><bpmn:flowNodeRef>e_cap</bpmn:flowNodeRef><bpmn:flowNodeRef>e_gw1</bpmn:flowNodeRef><bpmn:flowNodeRef>e_alt</bpmn:flowNodeRef><bpmn:flowNodeRef>e_endalt</bpmn:flowNodeRef><bpmn:flowNodeRef>e_quote</bpmn:flowNodeRef><bpmn:flowNodeRef>e_evgw</bpmn:flowNodeRef><bpmn:flowNodeRef>e_acc</bpmn:flowNodeRef><bpmn:flowNodeRef>e_dec</bpmn:flowNodeRef><bpmn:flowNodeRef>e_enddec</bpmn:flowNodeRef><bpmn:flowNodeRef>e_excel</bpmn:flowNodeRef><bpmn:flowNodeRef>e_gw2</bpmn:flowNodeRef><bpmn:flowNodeRef>e_dep</bpmn:flowNodeRef><bpmn:flowNodeRef>e_m2</bpmn:flowNodeRef><bpmn:flowNodeRef>e_print</bpmn:flowNodeRef><bpmn:flowNodeRef>e_gw4</bpmn:flowNodeRef><bpmn:flowNodeRef>e_upd</bpmn:flowNodeRef><bpmn:flowNodeRef>e_m4</bpmn:flowNodeRef><bpmn:flowNodeRef>e_call</bpmn:flowNodeRef><bpmn:flowNodeRef>e_inv</bpmn:flowNodeRef><bpmn:flowNodeRef>e_end</bpmn:flowNodeRef></bpmn:lane>
+<bpmn:lane id="L_Kitchen" name="Kitchen"><bpmn:flowNodeRef>k_prep</bpmn:flowNodeRef></bpmn:lane>
+<bpmn:lane id="L_Driver" name="Driver"><bpmn:flowNodeRef>d_del</bpmn:flowNodeRef></bpmn:lane>
+<bpmn:lane id="L_Owner" name="Owner"><bpmn:flowNodeRef>o_start</bpmn:flowNodeRef><bpmn:flowNodeRef>o_rec</bpmn:flowNodeRef><bpmn:flowNodeRef>o_end</bpmn:flowNodeRef></bpmn:lane>
+</bpmn:laneSet>
+<bpmn:startEvent id="e_start" name="Request received"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 1-2</bpmn:documentation><bpmn:outgoing>Flow_asis_19</bpmn:outgoing><bpmn:messageEventDefinition id="e_start_def" /></bpmn:startEvent>
+<bpmn:task id="e_read" name="P2 · Read request (1-2 working days, up to 7 in peak season)"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 2; 01_interview_event-coordinator_2026-08-15.txt Q2</bpmn:documentation><bpmn:incoming>Flow_asis_19</bpmn:incoming><bpmn:outgoing>Flow_asis_20</bpmn:outgoing></bpmn:task>
+<bpmn:task id="e_cap" name="P3 · Check capacity in Google Calendar (gut feeling)"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 3; 01_interview_event-coordinator_2026-08-15.txt Q4</bpmn:documentation><bpmn:incoming>Flow_asis_20</bpmn:incoming><bpmn:outgoing>Flow_asis_21</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="e_gw1" name="Capacity available?"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 3</bpmn:documentation><bpmn:incoming>Flow_asis_21</bpmn:incoming><bpmn:outgoing>Flow_asis_22</bpmn:outgoing><bpmn:outgoing>Flow_asis_24</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="e_alt" name="Propose another date"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 3</bpmn:documentation><bpmn:incoming>Flow_asis_22</bpmn:incoming><bpmn:outgoing>Flow_asis_23</bpmn:outgoing></bpmn:task>
+<bpmn:endEvent id="e_endalt" name="Other date proposed"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 3</bpmn:documentation><bpmn:incoming>Flow_asis_23</bpmn:incoming></bpmn:endEvent>
+<bpmn:task id="e_quote" name="P4 · Write quote in Word and e-mail it as PDF"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 4; 01_interview_event-coordinator_2026-08-15.txt Q1</bpmn:documentation><bpmn:incoming>Flow_asis_24</bpmn:incoming><bpmn:outgoing>Flow_asis_25</bpmn:outgoing></bpmn:task>
+<bpmn:eventBasedGateway id="e_evgw" name="Wait for reply"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 5</bpmn:documentation><bpmn:incoming>Flow_asis_25</bpmn:incoming><bpmn:outgoing>Flow_asis_26</bpmn:outgoing><bpmn:outgoing>Flow_asis_27</bpmn:outgoing></bpmn:eventBasedGateway>
+<bpmn:intermediateCatchEvent id="e_acc" name="Acceptance received"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 5</bpmn:documentation><bpmn:incoming>Flow_asis_26</bpmn:incoming><bpmn:outgoing>Flow_asis_29</bpmn:outgoing><bpmn:messageEventDefinition id="e_acc_def" /></bpmn:intermediateCatchEvent>
+<bpmn:intermediateCatchEvent id="e_dec" name="Decline received"><bpmn:documentation>Source: INFERRED from step 5</bpmn:documentation><bpmn:incoming>Flow_asis_27</bpmn:incoming><bpmn:outgoing>Flow_asis_28</bpmn:outgoing><bpmn:messageEventDefinition id="e_dec_def" /></bpmn:intermediateCatchEvent>
+<bpmn:endEvent id="e_enddec" name="Not booked"><bpmn:documentation>Source: INFERRED</bpmn:documentation><bpmn:incoming>Flow_asis_28</bpmn:incoming></bpmn:endEvent>
+<bpmn:task id="e_excel" name="P6 · Add row to Excel sheet 'Bestillinger'"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 5; 01_interview_event-coordinator_2026-08-15.txt Q1</bpmn:documentation><bpmn:incoming>Flow_asis_29</bpmn:incoming><bpmn:outgoing>Flow_asis_30</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="e_gw2" name="Wedding?"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 6</bpmn:documentation><bpmn:incoming>Flow_asis_30</bpmn:incoming><bpmn:outgoing>Flow_asis_31</bpmn:outgoing><bpmn:outgoing>Flow_asis_32</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="e_dep" name="P7 · Send Vipps deposit request (sometimes forgotten)"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 6</bpmn:documentation><bpmn:incoming>Flow_asis_31</bpmn:incoming><bpmn:outgoing>Flow_asis_33</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="e_m2" name=""><bpmn:documentation>Merge gateway</bpmn:documentation><bpmn:incoming>Flow_asis_32</bpmn:incoming><bpmn:incoming>Flow_asis_33</bpmn:incoming><bpmn:outgoing>Flow_asis_34</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="e_print" name="P8 · Print order and pin it on the kitchen board"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 7; 01_interview_event-coordinator_2026-08-15.txt Q1</bpmn:documentation><bpmn:incoming>Flow_asis_34</bpmn:incoming><bpmn:outgoing>Flow_asis_35</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="e_gw4" name="Changes received?"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 8</bpmn:documentation><bpmn:incoming>Flow_asis_35</bpmn:incoming><bpmn:outgoing>Flow_asis_36</bpmn:outgoing><bpmn:outgoing>Flow_asis_37</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="e_upd" name="P9 · Update Excel and re-print (sometimes forgotten)"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 8; 01_interview_event-coordinator_2026-08-15.txt Q1</bpmn:documentation><bpmn:incoming>Flow_asis_36</bpmn:incoming><bpmn:outgoing>Flow_asis_38</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="e_m4" name=""><bpmn:documentation>Merge gateway</bpmn:documentation><bpmn:incoming>Flow_asis_37</bpmn:incoming><bpmn:incoming>Flow_asis_38</bpmn:incoming><bpmn:outgoing>Flow_asis_39</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="e_call" name="P10 · Phone customer 7 days before to confirm numbers (if time)"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 9</bpmn:documentation><bpmn:incoming>Flow_asis_39</bpmn:incoming><bpmn:outgoing>Flow_asis_40</bpmn:outgoing></bpmn:task>
+<bpmn:task id="k_prep" name="P11 · Prepare food from the printed order"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 10; 01_interview_event-coordinator_2026-08-15.txt Q5</bpmn:documentation><bpmn:incoming>Flow_asis_40</bpmn:incoming><bpmn:outgoing>Flow_asis_41</bpmn:outgoing></bpmn:task>
+<bpmn:task id="d_del" name="Deliver food (address from printout, own phone)"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 10; 03_landscape_current-it_2026-10-20.txt 'Driver'</bpmn:documentation><bpmn:incoming>Flow_asis_41</bpmn:incoming><bpmn:outgoing>Flow_asis_42</bpmn:outgoing></bpmn:task>
+<bpmn:task id="e_inv" name="P12 · Create invoice in Fiken or Vipps request manually"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 11</bpmn:documentation><bpmn:incoming>Flow_asis_42</bpmn:incoming><bpmn:outgoing>Flow_asis_43</bpmn:outgoing></bpmn:task>
+<bpmn:endEvent id="e_end" name="Order completed"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 11</bpmn:documentation><bpmn:incoming>Flow_asis_43</bpmn:incoming></bpmn:endEvent>
+<bpmn:startEvent id="o_start" name="Monthly"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 12</bpmn:documentation><bpmn:outgoing>Flow_asis_44</bpmn:outgoing><bpmn:timerEventDefinition id="o_start_def" /></bpmn:startEvent>
+<bpmn:task id="o_rec" name="Reconcile Fiken with the Excel sheet"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 12</bpmn:documentation><bpmn:incoming>Flow_asis_44</bpmn:incoming><bpmn:outgoing>Flow_asis_45</bpmn:outgoing></bpmn:task>
+<bpmn:endEvent id="o_end" name="Reconciled"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 12</bpmn:documentation><bpmn:incoming>Flow_asis_45</bpmn:incoming></bpmn:endEvent>
+<bpmn:sequenceFlow id="Flow_asis_19" name="" sourceRef="e_start" targetRef="e_read" />
+<bpmn:sequenceFlow id="Flow_asis_20" name="" sourceRef="e_read" targetRef="e_cap" />
+<bpmn:sequenceFlow id="Flow_asis_21" name="" sourceRef="e_cap" targetRef="e_gw1" />
+<bpmn:sequenceFlow id="Flow_asis_22" name="No" sourceRef="e_gw1" targetRef="e_alt" />
+<bpmn:sequenceFlow id="Flow_asis_23" name="" sourceRef="e_alt" targetRef="e_endalt" />
+<bpmn:sequenceFlow id="Flow_asis_24" name="Yes" sourceRef="e_gw1" targetRef="e_quote" />
+<bpmn:sequenceFlow id="Flow_asis_25" name="" sourceRef="e_quote" targetRef="e_evgw" />
+<bpmn:sequenceFlow id="Flow_asis_26" name="" sourceRef="e_evgw" targetRef="e_acc" />
+<bpmn:sequenceFlow id="Flow_asis_27" name="" sourceRef="e_evgw" targetRef="e_dec" />
+<bpmn:sequenceFlow id="Flow_asis_28" name="" sourceRef="e_dec" targetRef="e_enddec" />
+<bpmn:sequenceFlow id="Flow_asis_29" name="" sourceRef="e_acc" targetRef="e_excel" />
+<bpmn:sequenceFlow id="Flow_asis_30" name="" sourceRef="e_excel" targetRef="e_gw2" />
+<bpmn:sequenceFlow id="Flow_asis_31" name="Yes" sourceRef="e_gw2" targetRef="e_dep" />
+<bpmn:sequenceFlow id="Flow_asis_32" name="No" sourceRef="e_gw2" targetRef="e_m2" />
+<bpmn:sequenceFlow id="Flow_asis_33" name="" sourceRef="e_dep" targetRef="e_m2" />
+<bpmn:sequenceFlow id="Flow_asis_34" name="" sourceRef="e_m2" targetRef="e_print" />
+<bpmn:sequenceFlow id="Flow_asis_35" name="" sourceRef="e_print" targetRef="e_gw4" />
+<bpmn:sequenceFlow id="Flow_asis_36" name="Yes" sourceRef="e_gw4" targetRef="e_upd" />
+<bpmn:sequenceFlow id="Flow_asis_37" name="No" sourceRef="e_gw4" targetRef="e_m4" />
+<bpmn:sequenceFlow id="Flow_asis_38" name="" sourceRef="e_upd" targetRef="e_m4" />
+<bpmn:sequenceFlow id="Flow_asis_39" name="" sourceRef="e_m4" targetRef="e_call" />
+<bpmn:sequenceFlow id="Flow_asis_40" name="" sourceRef="e_call" targetRef="k_prep" />
+<bpmn:sequenceFlow id="Flow_asis_41" name="" sourceRef="k_prep" targetRef="d_del" />
+<bpmn:sequenceFlow id="Flow_asis_42" name="" sourceRef="d_del" targetRef="e_inv" />
+<bpmn:sequenceFlow id="Flow_asis_43" name="" sourceRef="e_inv" targetRef="e_end" />
+<bpmn:sequenceFlow id="Flow_asis_44" name="" sourceRef="o_start" targetRef="o_rec" />
+<bpmn:sequenceFlow id="Flow_asis_45" name="" sourceRef="o_rec" targetRef="o_end" />
+</bpmn:process>
+<bpmndi:BPMNDiagram id="Dia_asis"><bpmndi:BPMNPlane id="Plane_asis" bpmnElement="Collab_asis">
+<bpmndi:BPMNShape id="P_Customer_di" bpmnElement="P_Customer" isHorizontal="true"><dc:Bounds x="0" y="90" width="4075" height="240" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="P_EkteMat_di" bpmnElement="P_EkteMat" isHorizontal="true"><dc:Bounds x="0" y="370" width="4075" height="600" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="L_Coord_di" bpmnElement="L_Coord" isHorizontal="true"><dc:Bounds x="30" y="370" width="4045" height="240" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="L_Kitchen_di" bpmnElement="L_Kitchen" isHorizontal="true"><dc:Bounds x="30" y="610" width="4045" height="120" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="L_Driver_di" bpmnElement="L_Driver" isHorizontal="true"><dc:Bounds x="30" y="730" width="4045" height="120" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="L_Owner_di" bpmnElement="L_Owner" isHorizontal="true"><dc:Bounds x="30" y="850" width="4045" height="120" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_start_di" bpmnElement="c_start"><dc:Bounds x="147" y="252" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="117" y="293" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_send_di" bpmnElement="c_send" bioc:stroke="#C00000" bioc:fill="#FFD7D7" color:border-color="#C00000" color:background-color="#FFD7D7"><dc:Bounds x="268" y="224" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_quote_di" bpmnElement="c_quote"><dc:Bounds x="1167" y="252" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1137" y="216" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_gw_di" bpmnElement="c_gw" isMarkerVisible="true"><dc:Bounds x="1330" y="245" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1305" y="300" width="100" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_acc_di" bpmnElement="c_acc" bioc:stroke="#C00000" bioc:fill="#FFD7D7" color:border-color="#C00000" color:background-color="#FFD7D7"><dc:Bounds x="1458" y="224" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_dec_di" bpmnElement="c_dec"><dc:Bounds x="1628" y="104" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_enddec_di" bpmnElement="c_enddec"><dc:Bounds x="1847" y="132" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1817" y="173" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_gwW_di" bpmnElement="c_gwW" isMarkerVisible="true"><dc:Bounds x="2010" y="245" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1985" y="300" width="100" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_pay_di" bpmnElement="c_pay"><dc:Bounds x="2138" y="104" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_mW_di" bpmnElement="c_mW" isMarkerVisible="true"><dc:Bounds x="2350" y="245" width="50" height="50" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_gwC_di" bpmnElement="c_gwC" isMarkerVisible="true"><dc:Bounds x="2690" y="245" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="2665" y="300" width="100" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_chg_di" bpmnElement="c_chg" bioc:stroke="#C00000" bioc:fill="#FFD7D7" color:border-color="#C00000" color:background-color="#FFD7D7"><dc:Bounds x="2818" y="104" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_mC_di" bpmnElement="c_mC" isMarkerVisible="true"><dc:Bounds x="3030" y="245" width="50" height="50" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_conf_di" bpmnElement="c_conf"><dc:Bounds x="3158" y="224" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_food_di" bpmnElement="c_food"><dc:Bounds x="3547" y="252" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="3517" y="216" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_payinv_di" bpmnElement="c_payinv"><dc:Bounds x="3668" y="224" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_end_di" bpmnElement="c_end"><dc:Bounds x="3887" y="252" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="3857" y="293" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_start_di" bpmnElement="e_start"><dc:Bounds x="317" y="532" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="287" y="573" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_read_di" bpmnElement="e_read" bioc:stroke="#C00000" bioc:fill="#FFD7D7" color:border-color="#C00000" color:background-color="#FFD7D7"><dc:Bounds x="438" y="504" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_cap_di" bpmnElement="e_cap" bioc:stroke="#C00000" bioc:fill="#FFD7D7" color:border-color="#C00000" color:background-color="#FFD7D7"><dc:Bounds x="608" y="504" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_gw1_di" bpmnElement="e_gw1" isMarkerVisible="true"><dc:Bounds x="820" y="525" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="795" y="580" width="100" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_alt_di" bpmnElement="e_alt"><dc:Bounds x="778" y="384" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_endalt_di" bpmnElement="e_endalt"><dc:Bounds x="997" y="412" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="967" y="453" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_quote_di" bpmnElement="e_quote" bioc:stroke="#C00000" bioc:fill="#FFD7D7" color:border-color="#C00000" color:background-color="#FFD7D7"><dc:Bounds x="1118" y="504" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_evgw_di" bpmnElement="e_evgw"><dc:Bounds x="1330" y="525" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1305" y="580" width="100" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_acc_di" bpmnElement="e_acc"><dc:Bounds x="1507" y="532" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1477" y="573" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_dec_di" bpmnElement="e_dec"><dc:Bounds x="1677" y="412" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1647" y="453" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_enddec_di" bpmnElement="e_enddec"><dc:Bounds x="1847" y="412" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1817" y="453" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_excel_di" bpmnElement="e_excel" bioc:stroke="#C00000" bioc:fill="#FFD7D7" color:border-color="#C00000" color:background-color="#FFD7D7"><dc:Bounds x="1798" y="504" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_gw2_di" bpmnElement="e_gw2" isMarkerVisible="true"><dc:Bounds x="2010" y="525" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1985" y="580" width="100" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_dep_di" bpmnElement="e_dep" bioc:stroke="#C00000" bioc:fill="#FFD7D7" color:border-color="#C00000" color:background-color="#FFD7D7"><dc:Bounds x="2138" y="384" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_m2_di" bpmnElement="e_m2" isMarkerVisible="true"><dc:Bounds x="2350" y="525" width="50" height="50" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_print_di" bpmnElement="e_print" bioc:stroke="#C00000" bioc:fill="#FFD7D7" color:border-color="#C00000" color:background-color="#FFD7D7"><dc:Bounds x="2478" y="504" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_gw4_di" bpmnElement="e_gw4" isMarkerVisible="true"><dc:Bounds x="2690" y="525" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="2665" y="580" width="100" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_upd_di" bpmnElement="e_upd" bioc:stroke="#C00000" bioc:fill="#FFD7D7" color:border-color="#C00000" color:background-color="#FFD7D7"><dc:Bounds x="2818" y="384" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_m4_di" bpmnElement="e_m4" isMarkerVisible="true"><dc:Bounds x="3030" y="525" width="50" height="50" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_call_di" bpmnElement="e_call" bioc:stroke="#C00000" bioc:fill="#FFD7D7" color:border-color="#C00000" color:background-color="#FFD7D7"><dc:Bounds x="3158" y="504" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="k_prep_di" bpmnElement="k_prep" bioc:stroke="#C00000" bioc:fill="#FFD7D7" color:border-color="#C00000" color:background-color="#FFD7D7"><dc:Bounds x="3328" y="624" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="d_del_di" bpmnElement="d_del"><dc:Bounds x="3498" y="744" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_inv_di" bpmnElement="e_inv" bioc:stroke="#C00000" bioc:fill="#FFD7D7" color:border-color="#C00000" color:background-color="#FFD7D7"><dc:Bounds x="3668" y="504" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_end_di" bpmnElement="e_end"><dc:Bounds x="3887" y="532" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="3857" y="573" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="o_start_di" bpmnElement="o_start"><dc:Bounds x="3377" y="892" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="3347" y="933" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="o_rec_di" bpmnElement="o_rec"><dc:Bounds x="3498" y="864" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="o_end_di" bpmnElement="o_end"><dc:Bounds x="3717" y="892" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="3687" y="933" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="Ann_legend_di" bpmnElement="Ann_legend"><dc:Bounds x="0" y="10" width="420" height="60" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="Ann_driver_di" bpmnElement="Ann_driver"><dc:Bounds x="3658" y="754" width="270" height="60" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="Ann_owner_di" bpmnElement="Ann_owner"><dc:Bounds x="3028" y="874" width="250" height="60" /></bpmndi:BPMNShape>
+<bpmndi:BPMNEdge id="Msg_1_di" bpmnElement="Msg_1"><di:waypoint x="335" y="316" /><di:waypoint x="335" y="532" /><bpmndi:BPMNLabel><dc:Bounds x="341" y="332" width="55" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_2_di" bpmnElement="Msg_2"><di:waypoint x="845" y="384" /><di:waypoint x="845" y="330" /><bpmndi:BPMNLabel><dc:Bounds x="851" y="332" width="118" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_3_di" bpmnElement="Msg_3"><di:waypoint x="1185" y="504" /><di:waypoint x="1185" y="288" /><bpmndi:BPMNLabel><dc:Bounds x="1191" y="332" width="83" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_4_di" bpmnElement="Msg_4"><di:waypoint x="1525" y="316" /><di:waypoint x="1525" y="532" /><bpmndi:BPMNLabel><dc:Bounds x="1531" y="332" width="76" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_5_di" bpmnElement="Msg_5"><di:waypoint x="1695" y="196" /><di:waypoint x="1695" y="412" /><bpmndi:BPMNLabel><dc:Bounds x="1701" y="332" width="55" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_6_di" bpmnElement="Msg_6"><di:waypoint x="2205" y="384" /><di:waypoint x="2205" y="196" /><bpmndi:BPMNLabel><dc:Bounds x="2211" y="332" width="111" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_7_di" bpmnElement="Msg_7"><di:waypoint x="2885" y="196" /><di:waypoint x="2885" y="384" /><bpmndi:BPMNLabel><dc:Bounds x="2891" y="332" width="55" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_8_di" bpmnElement="Msg_8"><di:waypoint x="3225" y="504" /><di:waypoint x="3225" y="316" /><bpmndi:BPMNLabel><dc:Bounds x="3231" y="332" width="125" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_9_di" bpmnElement="Msg_9"><di:waypoint x="3565" y="744" /><di:waypoint x="3565" y="288" /><bpmndi:BPMNLabel><dc:Bounds x="3571" y="332" width="34" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_10_di" bpmnElement="Msg_10"><di:waypoint x="3735" y="504" /><di:waypoint x="3735" y="316" /><bpmndi:BPMNLabel><dc:Bounds x="3741" y="332" width="167" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_1_di" bpmnElement="Flow_asis_1"><di:waypoint x="183" y="270" /><di:waypoint x="268" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_2_di" bpmnElement="Flow_asis_2"><di:waypoint x="402" y="270" /><di:waypoint x="1167" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_3_di" bpmnElement="Flow_asis_3"><di:waypoint x="1203" y="270" /><di:waypoint x="1330" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_4_di" bpmnElement="Flow_asis_4"><di:waypoint x="1380" y="270" /><di:waypoint x="1458" y="270" /><bpmndi:BPMNLabel><dc:Bounds x="1388" y="248" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_5_di" bpmnElement="Flow_asis_5"><di:waypoint x="1355" y="245" /><di:waypoint x="1355" y="150" /><di:waypoint x="1628" y="150" /><bpmndi:BPMNLabel><dc:Bounds x="1361" y="213" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_6_di" bpmnElement="Flow_asis_6"><di:waypoint x="1762" y="150" /><di:waypoint x="1847" y="150" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_7_di" bpmnElement="Flow_asis_7"><di:waypoint x="1592" y="270" /><di:waypoint x="2010" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_8_di" bpmnElement="Flow_asis_8"><di:waypoint x="2035" y="245" /><di:waypoint x="2035" y="150" /><di:waypoint x="2138" y="150" /><bpmndi:BPMNLabel><dc:Bounds x="2041" y="213" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_9_di" bpmnElement="Flow_asis_9"><di:waypoint x="2060" y="270" /><di:waypoint x="2350" y="270" /><bpmndi:BPMNLabel><dc:Bounds x="2068" y="248" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_10_di" bpmnElement="Flow_asis_10"><di:waypoint x="2272" y="150" /><di:waypoint x="2375" y="150" /><di:waypoint x="2375" y="245" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_11_di" bpmnElement="Flow_asis_11"><di:waypoint x="2400" y="270" /><di:waypoint x="2690" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_12_di" bpmnElement="Flow_asis_12"><di:waypoint x="2715" y="245" /><di:waypoint x="2715" y="150" /><di:waypoint x="2818" y="150" /><bpmndi:BPMNLabel><dc:Bounds x="2721" y="213" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_13_di" bpmnElement="Flow_asis_13"><di:waypoint x="2740" y="270" /><di:waypoint x="3030" y="270" /><bpmndi:BPMNLabel><dc:Bounds x="2748" y="248" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_14_di" bpmnElement="Flow_asis_14"><di:waypoint x="2952" y="150" /><di:waypoint x="3055" y="150" /><di:waypoint x="3055" y="245" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_15_di" bpmnElement="Flow_asis_15"><di:waypoint x="3080" y="270" /><di:waypoint x="3158" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_16_di" bpmnElement="Flow_asis_16"><di:waypoint x="3292" y="270" /><di:waypoint x="3547" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_17_di" bpmnElement="Flow_asis_17"><di:waypoint x="3583" y="270" /><di:waypoint x="3668" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_18_di" bpmnElement="Flow_asis_18"><di:waypoint x="3802" y="270" /><di:waypoint x="3887" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_19_di" bpmnElement="Flow_asis_19"><di:waypoint x="353" y="550" /><di:waypoint x="438" y="550" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_20_di" bpmnElement="Flow_asis_20"><di:waypoint x="572" y="550" /><di:waypoint x="608" y="550" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_21_di" bpmnElement="Flow_asis_21"><di:waypoint x="742" y="550" /><di:waypoint x="820" y="550" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_22_di" bpmnElement="Flow_asis_22"><di:waypoint x="845" y="525" /><di:waypoint x="845" y="476" /><bpmndi:BPMNLabel><dc:Bounds x="851" y="493" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_23_di" bpmnElement="Flow_asis_23"><di:waypoint x="912" y="430" /><di:waypoint x="997" y="430" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_24_di" bpmnElement="Flow_asis_24"><di:waypoint x="870" y="550" /><di:waypoint x="1118" y="550" /><bpmndi:BPMNLabel><dc:Bounds x="878" y="528" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_25_di" bpmnElement="Flow_asis_25"><di:waypoint x="1252" y="550" /><di:waypoint x="1330" y="550" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_26_di" bpmnElement="Flow_asis_26"><di:waypoint x="1380" y="550" /><di:waypoint x="1507" y="550" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_27_di" bpmnElement="Flow_asis_27"><di:waypoint x="1355" y="525" /><di:waypoint x="1355" y="430" /><di:waypoint x="1677" y="430" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_28_di" bpmnElement="Flow_asis_28"><di:waypoint x="1713" y="430" /><di:waypoint x="1847" y="430" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_29_di" bpmnElement="Flow_asis_29"><di:waypoint x="1543" y="550" /><di:waypoint x="1798" y="550" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_30_di" bpmnElement="Flow_asis_30"><di:waypoint x="1932" y="550" /><di:waypoint x="2010" y="550" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_31_di" bpmnElement="Flow_asis_31"><di:waypoint x="2035" y="525" /><di:waypoint x="2035" y="430" /><di:waypoint x="2138" y="430" /><bpmndi:BPMNLabel><dc:Bounds x="2041" y="493" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_32_di" bpmnElement="Flow_asis_32"><di:waypoint x="2060" y="550" /><di:waypoint x="2350" y="550" /><bpmndi:BPMNLabel><dc:Bounds x="2068" y="528" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_33_di" bpmnElement="Flow_asis_33"><di:waypoint x="2272" y="430" /><di:waypoint x="2375" y="430" /><di:waypoint x="2375" y="525" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_34_di" bpmnElement="Flow_asis_34"><di:waypoint x="2400" y="550" /><di:waypoint x="2478" y="550" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_35_di" bpmnElement="Flow_asis_35"><di:waypoint x="2612" y="550" /><di:waypoint x="2690" y="550" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_36_di" bpmnElement="Flow_asis_36"><di:waypoint x="2715" y="525" /><di:waypoint x="2715" y="430" /><di:waypoint x="2818" y="430" /><bpmndi:BPMNLabel><dc:Bounds x="2721" y="493" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_37_di" bpmnElement="Flow_asis_37"><di:waypoint x="2740" y="550" /><di:waypoint x="3030" y="550" /><bpmndi:BPMNLabel><dc:Bounds x="2748" y="528" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_38_di" bpmnElement="Flow_asis_38"><di:waypoint x="2952" y="430" /><di:waypoint x="3055" y="430" /><di:waypoint x="3055" y="525" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_39_di" bpmnElement="Flow_asis_39"><di:waypoint x="3080" y="550" /><di:waypoint x="3158" y="550" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_40_di" bpmnElement="Flow_asis_40"><di:waypoint x="3292" y="550" /><di:waypoint x="3310" y="550" /><di:waypoint x="3310" y="670" /><di:waypoint x="3328" y="670" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_41_di" bpmnElement="Flow_asis_41"><di:waypoint x="3462" y="670" /><di:waypoint x="3480" y="670" /><di:waypoint x="3480" y="790" /><di:waypoint x="3498" y="790" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_42_di" bpmnElement="Flow_asis_42"><di:waypoint x="3632" y="790" /><di:waypoint x="3650" y="790" /><di:waypoint x="3650" y="550" /><di:waypoint x="3668" y="550" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_43_di" bpmnElement="Flow_asis_43"><di:waypoint x="3802" y="550" /><di:waypoint x="3887" y="550" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_44_di" bpmnElement="Flow_asis_44"><di:waypoint x="3413" y="910" /><di:waypoint x="3498" y="910" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_asis_45_di" bpmnElement="Flow_asis_45"><di:waypoint x="3632" y="910" /><di:waypoint x="3717" y="910" /></bpmndi:BPMNEdge>
+</bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>

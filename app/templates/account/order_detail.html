@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field, error_list, status_badge, payment_badge, order_summary, question_thread %}
+{% block title %}Order {{ order.order_number }} – Ekte Mat Online{% endblock %}
+{% block content %}
+  <h2>Order {{ order.order_number }}</h2>
+  <p>Status: {{ status_badge(order) }} &nbsp; Payment: {{ payment_badge(order) }}</p>
+  {% if order.status.value == 'submitted' %}
+    <p class="muted">Ekte Mat will look at your order and confirm it.</p>
+  {% endif %}
+  <p><a class="button" href="#ask">Ask a question about this order</a>
+     {% if questions %}<a href="#questions">See questions and answers ({{ questions | length }})</a>{% endif %}</p>
+  {{ order_summary(order, items) }}
+
+  <h3 id="questions">Questions</h3>
+  {{ question_thread(questions) }}
+
+  <h4 id="ask">Ask a question about this order</h4>
+  {{ error_list(errors) }}
+  <form method="post" action="{{ url_for('account.ask_question', order_id=order.id) }}#questions" class="stacked">
+    {{ csrf_field() }}
+    <label for="subject">Subject</label>
+    <input type="text" id="subject" name="subject" maxlength="120" required value="{{ question_form.get('subject', '') }}">
+    <label for="body">Your question</label>
+    <textarea id="body" name="body" rows="4" maxlength="2000" required>{{ question_form.get('body', '') }}</textarea>
+    <p><button type="submit">Send question</button></p>
+  </form>
+
+  <p><a href="{{ url_for('account.orders') }}">Back to my orders</a></p>
+{% endblock %}

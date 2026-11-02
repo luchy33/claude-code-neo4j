@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field, error_list %}
+{% block title %}Order – Ekte Mat Online{% endblock %}
+{% block content %}
+  <h2>Send your order</h2>
+  {{ error_list(errors) }}
+  <div class="row">
+    <form method="post" class="stacked" id="checkout-form">
+      {{ csrf_field() }}
+      <label for="event_type">Kind of event</label>
+      <select id="event_type" name="event_type" required>
+        <option value="">Choose …</option>
+        {% for c in event_categories %}
+          <option value="{{ c.value }}" {% if form.get('event_type') == c.value %}selected{% endif %}>{{ c.label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="event_date">Date of the event</label>
+      <input type="date" id="event_date" name="event_date" min="{{ min_date.isoformat() }}"
+             value="{{ form.get('event_date', '') }}" required>
+
+      <fieldset>
+        <legend>Delivery</legend>
+        {% for m in delivery_methods %}
+          <label><input type="radio" name="delivery_method" value="{{ m.value }}"
+                 {% if form.get('delivery_method', 'delivery') == m.value %}checked{% endif %}> {{ m.label }}</label>
+        {% endfor %}
+      </fieldset>
+      <label for="delivery_address">Delivery address (not needed for pick-up)</label>
+      <input type="text" id="delivery_address" name="delivery_address" value="{{ form.get('delivery_address', '') }}"
+             placeholder="Street, postcode and town">
+
+      <h3>Guests</h3>
+      <p class="muted">Split the guests into groups if some have allergies or special diets, e.g. “Main group: 20”,
+        “Gluten free: 3”. Please don't write guests' names in the notes.</p>
+      <div class="guest-row muted" aria-hidden="true"><span>Group (optional)</span><span>Guests</span><span>Allergy and diet notes</span></div>
+      <div id="guest-rows">
+        {% for i in range(guest_rows) %}
+          <div class="guest-row">
+            <input type="text" name="group_label-{{ i }}" aria-label="Group {{ i + 1 }} name"
+                   value="{{ form.get('group_label-' ~ i, '') }}" placeholder="{{ 'Main group' if i == 0 else '' }}">
+            <input type="number" name="group_count-{{ i }}" aria-label="Group {{ i + 1 }} number of guests" min="1" max="2000"
+                   value="{{ form.get('group_count-' ~ i, '') }}" {% if i == 0 %}required{% endif %}>
+            <input type="text" name="group_notes-{{ i }}" aria-label="Group {{ i + 1 }} allergy and diet notes" maxlength="500"
+                   value="{{ form.get('group_notes-' ~ i, '') }}" placeholder="{{ 'e.g. gluten free, nut allergy' if i == 1 else '' }}">
+          </div>
+        {% endfor %}
+      </div>
+      <p><button type="button" class="secondary" id="add-guest-row">Add another group</button></p>
+
+      <p><button type="submit">Send order</button></p>
+      <p class="muted">No payment now. Ekte Mat confirms the order and tells you about payment.</p>
+    </form>
+
+    <aside>
+      <h3>Your cart</h3>
+      <table>
+        {% for line in lines %}
+          <tr><td>{{ line.quantity }} × {{ line.food_item.name_en }}</td><td class="number">{{ line.line_total_nok }} NOK</td></tr>
+        {% endfor %}
+        <tr><th>Estimated total</th><th class="number">{{ total_nok }} NOK</th></tr>
+      </table>
+      <p><a href="{{ url_for('shop.cart') }}">Change the cart</a></p>
+    </aside>
+  </div>
+
+  <script>
+    // Adds one more empty guest-group row. Without JavaScript, the rows already shown still work.
+    document.getElementById("add-guest-row").addEventListener("click", function () {
+      var rows = document.getElementById("guest-rows");
+      var row = rows.lastElementChild.cloneNode(true);
+      var index = rows.children.length;
+      row.querySelectorAll("input").forEach(function (input) {
+        input.name = input.name.replace(/-\d+$/, "-" + index);
+        input.value = "";
+        input.placeholder = "";
+        input.required = false;
+        input.setAttribute("aria-label", input.getAttribute("aria-label").replace(/Group \d+/, "Group " + (index + 1)));
+      });
+      rows.appendChild(row);
+      row.querySelector("input").focus();
+    });
+  </script>
+{% endblock %}

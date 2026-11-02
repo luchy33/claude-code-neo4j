@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field, error_list, status_badge %}
+{% block title %}Question: {{ question.subject }} – Admin{% endblock %}
+{% block content %}
+  <h2>{{ question.subject }}</h2>
+  <p>From <strong>{{ question.name }}</strong> (<a href="mailto:{{ question.email }}">{{ question.email }}</a>),
+     {{ question.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+  {% if order %}
+    <p>About order <a href="{{ url_for('admin.order_detail', order_id=order.id) }}">{{ order.order_number }}</a>
+       – {{ order.event_type.label }}, {{ order.event_date.strftime('%d.%m.%Y') }} {{ status_badge(order) }}</p>
+  {% endif %}
+  <div class="question"><p class="question-body">{{ question.body }}</p></div>
+
+  <h3>{{ 'Update answer' if question.is_answered else 'Answer' }}</h3>
+  {% if question.is_answered %}<p class="muted">Answered {{ question.answered_at.strftime('%d.%m.%Y %H:%M') }}. The customer sees the new text if you change it.</p>{% endif %}
+  {{ error_list(errors) }}
+  <form method="post" action="{{ url_for('admin.answer_question', question_id=question.id) }}" class="stacked">
+    {{ csrf_field() }}
+    <label for="answer">Answer to the customer</label>
+    <textarea id="answer" name="answer" rows="6" maxlength="2000" required>{{ answer_text or '' }}</textarea>
+    <p><button type="submit">{{ 'Update answer' if question.is_answered else 'Send answer' }}</button></p>
+  </form>
+
+  {% if earlier %}
+    <h3>Other questions about this order</h3>
+    <ul>
+      {% for q in earlier %}
+        <li><a href="{{ url_for('admin.question_detail', question_id=q.id) }}">{{ q.subject }}</a>
+            <small>{{ q.created_at.strftime('%d.%m.%Y') }} – {{ 'answered' if q.is_answered else 'waiting' }}</small></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  <p><a href="{{ url_for('admin.questions') }}">Back to questions</a></p>
+{% endblock %}

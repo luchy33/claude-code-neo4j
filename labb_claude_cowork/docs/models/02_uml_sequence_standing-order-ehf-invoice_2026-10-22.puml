@@ -1,0 +1,66 @@
+@startuml
+' Ekte Mat Online - sequence diagram (INFO212), 2026-10-22
+' Scenario: corporate customer places a recurring lunch order and receives
+' a monthly EHF invoice via Fiken. Stories: US-25, US-27, US-11, US-23, US-24.
+' Participants written ":ClassName" are instances of domain classes.
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+title Recurring lunch order and monthly EHF invoice via Fiken
+
+actor ":CompanyUser" as U
+boundary "Web UI" as UI
+control "Scheduler" as S
+participant ":StandingOrder" as SO
+participant ":Order" as O
+participant ":Invoice" as I
+participant ":InvoiceLine" as IL
+participant "Fiken API" as F <<external system>>
+actor "Finance department" as Fin
+
+== Set up standing order (US-25, US-27) ==
+U -> UI : log in to company account (US-25)
+U -> UI : create standing order:\nweekday, dishes, quantities, reference (US-27)
+create SO
+UI -> SO : <<create>> active = true
+SO --> UI : saved
+UI --> U : standing order is active
+
+== Every week while the standing order is active ==
+loop each week
+  S -> SO : generate next occurrence
+  create O
+  SO -> O : <<create>> status = REQUESTED,\nchannel = ONLINE, customerReference
+  note right of O
+    Review and confirmation follow the
+    Order state machine. Whether generated
+    orders need coordinator review is an
+    ASSUMPTION (US-02, US-10).
+  end note
+  opt change before the deadline (ISS-03)
+    U -> UI : change guest numbers (US-11)
+    UI -> O : update quantities
+  end
+  O -> O : CONFIRMED ... DELIVERED
+end
+
+== Month end (US-23, US-24) ==
+create I
+S -> I : <<create>> format = EHF, status = DRAFT,\nperiodStart = first day, periodEnd = last day of month
+activate I
+loop each DELIVERED order of the company in the period
+  I -> IL : <<create>> amountNok, customerReference
+  IL -> O : bills
+end
+I -> F : create invoice with lines and references (US-24)
+F --> I : fikenInvoiceId
+I -> I : status = TRANSFERRED_TO_FIKEN
+loop each billed order
+  I -> O : status = INVOICED
+end
+deactivate I
+F -> Fin : EHF invoice with reference on each line (US-23)
+note over I, F
+  Behaviour if Fiken rejects the invoice is not
+  specified; Fiken API coverage is a dependency (ISS-05).
+end note
+@enduml

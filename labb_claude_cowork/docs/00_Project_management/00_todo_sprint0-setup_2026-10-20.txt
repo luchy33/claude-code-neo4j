@@ -1,0 +1,2 @@
+remember to buy printer ink
+sprint 0: set up Git repo, Jira/Trello board, agree on Definition of Done

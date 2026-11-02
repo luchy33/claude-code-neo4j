@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field %}
+{% block title %}Food items – Admin{% endblock %}
+{% block content %}
+  <h2>Food items</h2>
+  <p><a class="button" href="{{ url_for('admin.new_food_item') }}">Add food item</a></p>
+  <table>
+    <thead>
+      <tr><th>Picture</th><th>Name</th><th>Price</th><th>Min. order</th><th>Event categories</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+        <tr>
+          <td style="width: 90px">
+            {% if item.image_filename %}
+              <img src="{{ url_for('shop.image', filename=item.image_filename) }}" alt="" width="80">
+            {% else %}<span class="muted">None</span>{% endif %}
+          </td>
+          <td><strong>{{ item.name_en }}</strong><br><small>{{ item.name_no }}</small></td>
+          <td>{{ item.price_nok }} NOK</td>
+          <td>{{ item.min_order_quantity }}</td>
+          <td>{% for c in item.categories | sort(attribute='value') %}<span class="tag">{{ c.label }}</span>{% endfor %}</td>
+          <td>{{ 'Published' if item.published else 'Hidden' }}</td>
+          <td>
+            <a href="{{ url_for('admin.edit_food_item', item_id=item.id) }}">Edit</a> ·
+            <a href="{{ url_for('admin.food_item_image', item_id=item.id) }}">Picture</a>
+            <form method="post" action="{{ url_for('admin.delete_food_item', item_id=item.id) }}"
+                  onsubmit='return confirm({{ ("Delete " ~ item.name_en ~ "?") | tojson }});'>
+              {{ csrf_field() }}
+              <button type="submit" class="link-button">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="muted">No food items yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

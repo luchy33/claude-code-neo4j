@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}My account – Ekte Mat Online{% endblock %}
+{% block content %}
+  <h2>My account</h2>
+  <table>
+    <tr><th>Name</th><td>{{ g.user.name }}</td></tr>
+    <tr><th>E-mail</th><td>{{ g.user.email }}</td></tr>
+    {% if g.user.phone %}<tr><th>Phone</th><td>{{ g.user.phone }}</td></tr>{% endif %}
+    <tr><th>Customer type</th><td>{{ 'Company' if g.user.customer_type == 'corporate' else 'Private customer' }}</td></tr>
+    {% if g.user.organisation_number %}<tr><th>Organisation number</th><td>{{ g.user.organisation_number }}</td></tr>{% endif %}
+  </table>
+  <h3>Orders</h3>
+  {% if latest_order %}
+    <p>Your latest order: <a href="{{ url_for('account.order_detail', order_id=latest_order.id) }}">{{ latest_order.order_number }}</a>
+       for {{ latest_order.event_date.strftime('%d.%m.%Y') }} – {{ latest_order.status.label }}.</p>
+  {% endif %}
+  <p><a class="button" href="{{ url_for('account.orders') }}">My orders ({{ order_count }})</a></p>
+  {% if order_count %}<p class="muted">To ask Ekte Mat a question about an order, open the order and use <em>Ask a question</em>.</p>{% endif %}
+{% endblock %}

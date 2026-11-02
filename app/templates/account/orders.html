@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge, payment_badge %}
+{% block title %}My orders – Ekte Mat Online{% endblock %}
+{% block content %}
+  <h2>My orders</h2>
+  {% if orders %}
+    <table>
+      <thead>
+        <tr><th>Order</th><th>Event date</th><th>Event</th><th class="number">Guests</th><th class="number">Total</th><th>Status</th><th>Payment</th><th>Questions</th></tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+          <tr>
+            <td><a href="{{ url_for('account.order_detail', order_id=order.id) }}">{{ order.order_number }}</a></td>
+            <td>{{ order.event_date.strftime('%d.%m.%Y') }}</td>
+            <td>{{ order.event_type.label }}</td>
+            <td class="number">{{ order.guest_count }}</td>
+            <td class="number">{{ order.total_nok }} NOK</td>
+            <td>{{ status_badge(order) }}</td>
+            <td>{{ payment_badge(order) }}</td>
+            <td>
+              {% set total, unanswered = question_counts.get(order.id, (0, 0)) %}
+              {% if total %}
+                <a href="{{ url_for('account.order_detail', order_id=order.id, _anchor='questions') }}">{{ total }}</a>
+                {% if unanswered %}<span class="badge waiting">Waiting</span>{% else %}<span class="badge answered">Answered</span>{% endif %}
+              {% endif %}
+              <a href="{{ url_for('account.order_detail', order_id=order.id, _anchor='ask') }}">Ask a question</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="muted">Questions about an order? Click <em>Ask a question</em> on that order. Ekte Mat's answers are shown on the order's page.</p>
+  {% else %}
+    <p>You have not ordered anything yet.</p>
+    <p><a class="button" href="{{ url_for('shop.index') }}">Browse the menu</a></p>
+  {% endif %}
+{% endblock %}

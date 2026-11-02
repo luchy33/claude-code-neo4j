@@ -1,0 +1,21 @@
+STAKEHOLDER INTERVIEW 3 - Head chef
+Interviewee: Mateo Rinaldi (head chef)
+Date: 15 Aug 2026   Duration: 30 min
+[SYNTHETIC DATA - created for INFO212 Lab 7. All persons and companies are fictional.]
+
+Q: What do you need from the system?
+A: One screen in the kitchen. Tablet on the wall. For each day: which orders, how many portions of each
+dish, allergies in red. I do not want to log in with long passwords with flour on my hands - a PIN
+is fine.
+
+Q: Anything about menus?
+A: Menus change with the season, four times a year. I want to edit the menu myself, and ingredients
+should be linked to suppliers, so we can show origin like Ingrid wants. And I need a prep list:
+total kilos of each ingredient for the next three days.
+
+Q: What happens when the internet is down?
+A: It happened twice last winter. The kitchen must still see today's orders. Printing works too,
+but the screen should not just go blank.
+
+Q: Anything else?
+A: Please do not make it slow. The old booking plugin on the website took ten seconds to load a page.

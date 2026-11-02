@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Questions – Admin{% endblock %}
+{% block content %}
+  <h2>Questions</h2>
+  <p class="filters">
+    {% if show_all %}<a href="{{ url_for('admin.questions') }}">Waiting</a> | <strong>All</strong>
+    {% else %}<strong>Waiting</strong> | <a href="{{ url_for('admin.questions', show='all') }}">All</a>{% endif %}
+  </p>
+  <table>
+    <thead><tr><th>Asked</th><th>Order</th><th>Customer</th><th>Subject</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for q in questions %}
+        {% set order = orders.get(q.order_id) %}
+        <tr>
+          <td>{{ q.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+          <td>{% if order %}<a href="{{ url_for('admin.order_detail', order_id=order.id) }}">{{ order.order_number }}</a>{% else %}–{% endif %}</td>
+          <td>{{ q.name }}</td>
+          <td><a href="{{ url_for('admin.question_detail', question_id=q.id) }}">{{ q.subject }}</a></td>
+          <td>{% if q.is_answered %}<span class="badge answered">Answered</span>{% else %}<span class="badge waiting">Waiting</span>{% endif %}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="muted">{{ 'No questions yet.' if show_all else 'No questions are waiting for an answer.' }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="muted">{{ questions | length }} question(s)</p>
+{% endblock %}

@@ -1,0 +1,30 @@
+STAKEHOLDER INTERVIEW 1 - Owner / daglig leder
+Interviewee: Ingrid Solheim (founder and owner, Ekte Mat AS)
+Interviewer: project team   Date: 14 Aug 2026   Duration: 45 min
+[SYNTHETIC DATA - created for INFO212 Lab 7. All persons and companies are fictional.]
+
+Q: What is the main problem today?
+A: Everything comes in through e-mail and the phone. My coordinator copies it into an Excel sheet.
+We lose inquiries. Last December we found three julebord requests in the spam folder after the date
+had passed. That is maybe 60 000 kroner we never even saw.
+
+Q: What should the new system do first?
+A: Customers must be able to see our menus and prices and send a booking request themselves,
+at any hour. I want a proper order overview for the kitchen, and I want the system to take a
+30 % deposit when someone books - no deposit, no booking. We have had too many no-shows at weddings.
+
+Q: Payment?
+A: Vipps for private customers, definitely. Companies want an invoice. We use Fiken for accounting
+today and I do not want to change that.
+
+Q: Anything about the brand?
+A: Authentic, seasonal, honest about where the food comes from. I would love every menu to show
+where the lamb or the fish comes from - the farm, the boat. That is our story.
+
+Q: Budget and timeline?
+A: We have about 450 000 NOK for the first version including one year of hosting. I want something
+live before the 2027 wedding season, so by 1 March 2027 at the latest.
+
+Q: Who else should we talk to?
+A: Sunniva, who coordinates events, and Mateo in the kitchen. And maybe Fjordtek - they are our
+biggest corporate customer.

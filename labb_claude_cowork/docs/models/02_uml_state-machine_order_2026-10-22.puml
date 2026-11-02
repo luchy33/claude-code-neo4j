@@ -1,0 +1,34 @@
+@startuml
+' Ekte Mat Online - state machine for Order (INFO212), 2026-10-22
+' State names correspond to the OrderStatus enumeration in the class diagram.
+skinparam defaultFontName Arial
+title Order - state machine
+
+[*] --> Requested : booking request submitted (US-02)\n/ phone order registered (US-09)\n/ generated from standing order (US-27)
+
+Requested --> Rejected : declined by coordinator\n[no capacity] (US-10)
+Requested --> AwaitingDeposit : accepted [deposit required]\n(US-22; scope ISS-01)
+Requested --> Confirmed : accepted [no deposit required]\n/ send confirmation (US-04)
+AwaitingDeposit --> Confirmed : deposit paid via Vipps\n/ send confirmation (US-21, US-22)
+
+Confirmed : entry / show on kitchen overview (US-15)
+Confirmed : 7 days before event / send reminder (US-12)
+Confirmed --> Confirmed : guest numbers or allergies changed\n[before deadline, ISS-03] (US-11)
+Confirmed --> InPreparation : preparation starts\n[allergies confirmed] (US-16)
+InPreparation --> Delivered : delivered or picked up (US-14)
+Delivered --> Invoiced : invoice transferred to Fiken\nor Vipps payment captured (US-21, US-23, US-24)
+
+Requested --> Cancelled : cancellation requested (US-13; ISS-04)
+AwaitingDeposit --> Cancelled : cancellation requested (US-13; ISS-04)
+Confirmed --> Cancelled : cancellation requested\n[terms not defined] (US-13; ISS-04)
+
+Rejected --> [*]
+Cancelled --> [*]
+Invoiced --> [*]
+
+note right of Cancelled
+  Cancellation is only supported by US-13
+  (Could) and its terms are missing (ISS-04).
+  Included because the assignment asks for it.
+end note
+@enduml

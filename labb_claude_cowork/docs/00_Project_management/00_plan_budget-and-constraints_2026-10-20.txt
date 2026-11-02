@@ -1,0 +1,5 @@
+Budget first version: 450 000 NOK incl. 12 months hosting
+Running cost target: < 3 000 NOK/month
+Go-live: 1 March 2027 (hard), wedding season from May 2027
+Team: 3 student developers, 2-week sprints, product owner Ingrid (Tue 09-10)
+[SYNTHETIC DATA - INFO212 Lab 7]

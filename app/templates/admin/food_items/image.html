@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field %}
+{% block title %}Picture for {{ item.name_en }} – Admin{% endblock %}
+{% block content %}
+  <h2>Picture for {{ item.name_en }}</h2>
+  <div class="row">
+    <div class="preview">
+      <h3>Current picture</h3>
+      {% if item.image_filename %}
+        <img src="{{ url_for('shop.image', filename=item.image_filename) }}" alt="Current picture of {{ item.name_en }}">
+      {% else %}
+        <p class="muted">This item has no picture yet.</p>
+      {% endif %}
+    </div>
+    <div>
+      <h3>Upload a picture</h3>
+      <form method="post" enctype="multipart/form-data" class="stacked"
+            action="{{ url_for('admin.upload_food_item_image', item_id=item.id) }}">
+        {{ csrf_field() }}
+        <label for="image">JPG, PNG or WebP, max 5 MB</label>
+        <input type="file" id="image" name="image" accept=".jpg,.jpeg,.png,.webp" required>
+        <p><button type="submit">Upload and preview</button></p>
+      </form>
+
+      <h3>Or describe the picture for the AI</h3>
+      <form method="post" class="stacked" action="{{ url_for('admin.generate_food_item_image', item_id=item.id) }}">
+        {{ csrf_field() }}
+        <label for="instruction">Instruction</label>
+        <textarea id="instruction" name="instruction" rows="4" maxlength="1000" required
+                  placeholder="e.g. A bowl of creamy fish soup with cod and carrots on a wooden table"></textarea>
+        {% if item.image_filename %}
+          <label><input type="radio" name="base" value="current" checked> Change the current picture</label>
+          <label><input type="radio" name="base" value="none"> Draw a new picture</label>
+        {% else %}
+          <input type="hidden" name="base" value="none">
+        {% endif %}
+        <p><button type="submit">Generate and preview</button></p>
+        <p class="muted">Claude draws an illustration (SVG). This can take up to a minute.</p>
+      </form>
+    </div>
+  </div>
+  <p><a href="{{ url_for('admin.food_items') }}">Back to food items</a></p>
+{% endblock %}

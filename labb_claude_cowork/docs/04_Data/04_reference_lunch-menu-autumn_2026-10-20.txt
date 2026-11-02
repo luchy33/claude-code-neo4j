@@ -1,0 +1,7 @@
+Ekte Mat - autumn lunch menu draft (Mateo)
+[SYNTHETIC DATA - INFO212 Lab 7]
+1. Fish soup with Bergen cod, root vegetables, sourdough - 189 NOK/pers
+2. Slow-cooked lamb from Voss, barley risotto - 245 NOK/pers
+3. Beetroot and chickpea salad, goat cheese from Hardanger (V) - 165 NOK/pers
+4. Rakfisk tasting (seasonal, Nov only) - 210 NOK/pers
+Allergens to be labelled: fish, milk, gluten, nuts, celery, mustard.

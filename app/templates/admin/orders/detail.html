@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field, status_badge, payment_badge, order_summary, question_thread %}
+{% block title %}Order {{ order.order_number }} – Admin{% endblock %}
+{% block content %}
+  <h2>Order {{ order.order_number }}</h2>
+  <div class="row">
+    <div>
+      <h3>Order status: {{ status_badge(order) }}</h3>
+      {% if order.is_final %}
+        <p class="muted">Final status – this order can no longer be changed.</p>
+      {% else %}
+        <div>
+          {% for next_status in order.next_statuses %}
+            <form method="post" action="{{ url_for('admin.change_order_status', order_id=order.id) }}" style="display:inline">
+              {{ csrf_field() }}
+              <input type="hidden" name="status" value="{{ next_status.value }}">
+              <button type="submit" {% if next_status.value in ('rejected', 'cancelled') %}class="secondary"{% endif %}>
+                {{ {'approved': 'Approve', 'in_preparation': 'Start preparation', 'delivered': 'Mark as delivered',
+                    'rejected': 'Reject', 'cancelled': 'Cancel order'}[next_status.value] }}
+              </button>
+            </form>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <h3>Payment status: {{ payment_badge(order) }}</h3>
+      <form method="post" action="{{ url_for('admin.change_payment_status', order_id=order.id) }}" class="filters">
+        {{ csrf_field() }}
+        <label>Change to
+          <select name="payment_status">
+            {% for p in payment_statuses %}
+              <option value="{{ p.value }}" {% if order.payment_status == p %}selected{% endif %}>{{ p.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button type="submit">Save payment status</button>
+      </form>
+    </div>
+    <div>
+      <h3>Customer</h3>
+      {% if customer %}
+        <p><strong>{{ customer.name }}</strong>{% if customer.customer_type == 'corporate' %} (company, org. no. {{ customer.organisation_number }}){% endif %}<br>
+           <a href="mailto:{{ customer.email }}">{{ customer.email }}</a>{% if customer.phone %}<br>{{ customer.phone }}{% endif %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {{ order_summary(order, items) }}
+
+  <h3 id="questions">Questions from the customer</h3>
+  {{ question_thread(questions, answer_links=true) }}
+
+  <p><a href="{{ url_for('admin.orders') }}">Back to all orders</a></p>
+{% endblock %}

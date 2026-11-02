@@ -1,0 +1,95 @@
+@startuml
+' Ekte Mat Online - use case diagram (INFO212), 2026-10-22
+' Source: Must and Should stories in 01_Requirements/EkteMat_backlog_v1.xlsx.
+' Each use case lists the user stories it traces to in parentheses.
+left to right direction
+skinparam defaultFontName Arial
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #DDEBF7
+  BorderColor #1F4E78
+}
+title Ekte Mat Online - use cases (Must and Should stories)
+
+actor "Customer" as Cust
+actor "Private customer" as Priv
+actor "Corporate customer user" as Corp
+actor "Event coordinator" as Coord
+actor "Kitchen staff" as Kit
+actor "Head chef" as Chef
+actor "Owner" as Owner
+actor "Scheduler (time)" as Clock <<system>>
+actor "Vipps" as Vipps <<external system>>
+actor "Fiken" as Fiken <<external system>>
+
+Cust <|-- Priv
+Cust <|-- Corp
+Kit <|-- Chef
+
+rectangle "Ekte Mat Online" {
+  usecase "UC-01 Browse menus, prices,\norigin and allergens\n(US-01, US-05, US-06)" as UC01
+  usecase "UC-02 Check available dates\n(US-03)" as UC02
+  usecase "UC-03 Submit booking request\nwith guest groups and allergies\n(US-02, US-07)" as UC03
+  usecase "UC-04 Choose pick-up or delivery\n(US-14)" as UC04
+  usecase "UC-05 Receive confirmation\nand order status\n(US-04)" as UC05
+  usecase "UC-06 Change guest numbers\nand allergies\n(US-11)" as UC06
+  usecase "UC-07 Copy previous order\n(US-28)" as UC07
+  usecase "UC-08 Pay with Vipps\n(US-21)" as UC08
+  usecase "UC-09 Pay deposit\n(US-22)" as UC09
+  usecase "UC-10 Manage company account\nand users\n(US-25)" as UC10
+  usecase "UC-11 Manage standing orders\n(US-27)" as UC11
+  usecase "UC-12 Receive monthly EHF invoice\n(US-23)" as UC12
+  usecase "UC-13 Transfer invoices to Fiken\n(US-24)" as UC13
+  usecase "UC-14 Request access to\npersonal data\n(US-30)" as UC14
+  usecase "UC-15 Request deletion of\npersonal data\n(US-31)" as UC15
+  usecase "UC-16 Register and manage orders\n(US-09)" as UC16
+  usecase "UC-17 View capacity calendar\n(US-10)" as UC17
+  usecase "UC-18 Send final-numbers reminder\n(US-12)" as UC18
+  usecase "UC-19 View kitchen overview\n(US-15)" as UC19
+  usecase "UC-20 Confirm allergy information\n(US-16)" as UC20
+  usecase "UC-21 Log in with PIN\n(US-17)" as UC21
+  usecase "UC-22 Edit seasonal menu\n(US-18)" as UC22
+  usecase "UC-23 Link ingredients to suppliers\n(US-19)" as UC23
+}
+
+Cust --> UC01
+Cust --> UC02
+Cust --> UC03
+Cust --> UC05
+Cust --> UC06
+Cust --> UC07
+Cust --> UC09
+Cust --> UC14
+Cust --> UC15
+UC03 ..> UC04 : <<include>>
+Priv --> UC08
+Corp --> UC10
+Corp --> UC11
+Corp --> UC12
+UC12 ..> UC13 : <<include>>
+Owner --> UC13
+Coord --> UC16
+Coord --> UC17
+Coord --> UC14
+Coord --> UC15
+Clock --> UC18
+Kit --> UC19
+Kit --> UC20
+UC19 ..> UC21 : <<include>>
+UC20 ..> UC21 : <<include>>
+Chef --> UC22
+Chef --> UC23
+UC08 --> Vipps
+UC09 --> Vipps
+UC13 --> Fiken
+UC18 --> Cust
+
+note right of UC09
+  Deposit scope is UNRESOLVED:
+  all bookings or weddings only? (ISS-01)
+end note
+note bottom of Owner
+  No Must/Should story has the driver
+  as user, so no Driver actor (ISS-13).
+end note
+@enduml

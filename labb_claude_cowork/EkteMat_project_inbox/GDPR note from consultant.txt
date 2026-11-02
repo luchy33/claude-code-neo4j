@@ -1,0 +1,7 @@
+Note from data-protection consultant (phone call, 20 Aug 2026)
+[SYNTHETIC DATA - INFO212 Lab 7]
+- Allergy and dietary information about named persons can be health data (special category, GDPR art. 9).
+  Store per guest group, not per named guest, unless strictly needed.
+- Keep order data needed for bookkeeping 5 years (Norwegian Bookkeeping Act); other personal data should have a shorter retention period.
+- Customers must be able to request access and deletion.
+- A data processing agreement is needed with any cloud/SaaS provider.

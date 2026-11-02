@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field, error_list %}
+{% block title %}Register – Ekte Mat Online{% endblock %}
+{% block content %}
+  <h2>Create an account</h2>
+  {{ error_list(errors) }}
+  <form method="post" class="stacked">
+    {{ csrf_field() }}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" value="{{ form.get('name', '') }}" required>
+    <label for="email">E-mail</label>
+    <input type="email" id="email" name="email" value="{{ form.get('email', '') }}" required>
+    <label for="phone">Phone (optional)</label>
+    <input type="text" id="phone" name="phone" value="{{ form.get('phone', '') }}">
+    <label for="customer_type">Customer type</label>
+    <select id="customer_type" name="customer_type">
+      <option value="private" {% if form.get('customer_type') != 'corporate' %}selected{% endif %}>Private customer</option>
+      <option value="corporate" {% if form.get('customer_type') == 'corporate' %}selected{% endif %}>Company</option>
+    </select>
+    <label for="organisation_number">Organisation number (companies only)</label>
+    <input type="text" id="organisation_number" name="organisation_number" inputmode="numeric"
+           value="{{ form.get('organisation_number', '') }}">
+    <label for="password">Password (at least 8 characters)</label>
+    <input type="password" id="password" name="password" required minlength="8">
+    <label for="confirm_password">Repeat password</label>
+    <input type="password" id="confirm_password" name="confirm_password" required>
+    <p><button type="submit">Create account</button></p>
+  </form>
+  <p>Already have an account? <a href="{{ url_for('account.login', next=next_url) if next_url else url_for('account.login') }}">Log in</a>.</p>
+{% endblock %}

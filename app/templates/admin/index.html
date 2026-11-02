@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Admin – Ekte Mat Online{% endblock %}
+{% block content %}
+  <h2>Admin panel</h2>
+  <ul>
+    <li><a href="{{ url_for('admin.food_items') }}">Food items and pictures</a></li>
+    <li><a href="{{ url_for('admin.orders') }}">Orders</a>
+      {% if submitted_count %}– <a href="{{ url_for('admin.orders', status='submitted') }}"><strong>{{ submitted_count }} waiting for approval</strong></a>{% endif %}</li>
+    <li><a href="{{ url_for('admin.questions', show='all') }}">Questions</a>
+      {% if unanswered_count %}– <a href="{{ url_for('admin.questions') }}"><strong>{{ unanswered_count }} waiting for an answer</strong></a>{% endif %}</li>
+  </ul>
+{% endblock %}

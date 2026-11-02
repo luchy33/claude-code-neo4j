@@ -1,0 +1,82 @@
+{% macro csrf_field() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro error_list(errors) %}
+  {% if errors %}
+    <div class="errors" role="alert"><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+  {% endif %}
+{% endmacro %}
+
+{% macro food_image(item, alt_suffix="") %}
+  {% if item.image_filename %}
+    <img src="{{ url_for('shop.image', filename=item.image_filename) }}" alt="{{ item.name_en }}{{ alt_suffix }}">
+  {% else %}
+    <div class="placeholder">No picture yet</div>
+  {% endif %}
+{% endmacro %}
+
+{% macro status_badge(order) %}<span class="badge status-{{ order.status.value }}">{{ order.status.label }}</span>{% endmacro %}
+
+{% macro payment_badge(order) %}<span class="badge payment-{{ order.payment_status.value }}">{{ order.payment_status.label }}</span>{% endmacro %}
+
+{# Event, guest groups and dish lines of an order. Shared by "My orders" (C4) and the admin order page (A3). #}
+{% macro order_summary(order, items) %}
+  <table>
+    <tr><th>Event</th><td>{{ order.event_type.label }}, {{ order.event_date.strftime('%d.%m.%Y') }}</td></tr>
+    <tr><th>Delivery</th><td>{% if order.delivery_method.value == 'pick_up' %}Pick-up at Ekte Mat{% else %}Delivery to {{ order.delivery_address }}{% endif %}</td></tr>
+    <tr><th>Guests</th><td>{{ order.guest_count }}</td></tr>
+    <tr><th>Ordered</th><td>{{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</td></tr>
+  </table>
+
+  <h3>Guest groups</h3>
+  <table>
+    <thead><tr><th>Group</th><th class="number">Guests</th><th>Allergy and diet notes</th></tr></thead>
+    <tbody>
+      {% for group in order.guest_groups %}
+        <tr class="{{ 'has-notes' if group.diet_notes }}">
+          <td>{{ group.label or 'Guest group ' ~ loop.index }}</td>
+          <td class="number">{{ group.guest_count }}</td>
+          <td>{% if group.diet_notes %}<strong>{{ group.diet_notes }}</strong>{% else %}<span class="muted">None</span>{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Dishes</h3>
+  <table>
+    <thead><tr><th>Dish</th><th class="number">Portions</th><th class="number">Price per portion</th><th class="number">Line total</th></tr></thead>
+    <tbody>
+      {% for line in order.lines %}
+        <tr>
+          <td>{{ items[line.food_item_id].name_en if line.food_item_id in items else 'Dish #' ~ line.food_item_id }}</td>
+          <td class="number">{{ line.quantity }}</td>
+          <td class="number">{{ line.unit_price_nok }} NOK</td>
+          <td class="number">{{ line.total_nok }} NOK</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot><tr><th colspan="3" class="number">Total</th><th class="number">{{ order.total_nok }} NOK</th></tr></tfoot>
+  </table>
+{% endmacro %}
+
+{# Questions about one order with Ekte Mat's answers, oldest first. Shared by the customer's order page (C5)
+   and the admin order page (A3); `answer_links` adds an "Answer" link per question for the admin. #}
+{% macro question_thread(questions, answer_links=false) %}
+  {% for q in questions %}
+    <div class="question">
+      <p class="question-meta"><strong>{{ q.subject }}</strong>
+        <small>– {{ q.name }}, {{ q.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+        {% if answer_links %}<a href="{{ url_for('admin.question_detail', question_id=q.id) }}">{{ 'Change answer' if q.is_answered else 'Answer' }}</a>{% endif %}</p>
+      <p class="question-body">{{ q.body }}</p>
+      {% if q.is_answered %}
+        <div class="answer">
+          <p class="question-meta"><strong>Answer from Ekte Mat</strong> <small>{{ q.answered_at.strftime('%d.%m.%Y %H:%M') }}</small></p>
+          <p class="question-body">{{ q.answer }}</p>
+        </div>
+      {% else %}
+        <p><span class="badge waiting">Waiting for an answer</span></p>
+      {% endif %}
+    </div>
+  {% else %}
+    <p class="muted">No questions about this order yet.</p>
+  {% endfor %}
+{% endmacro %}

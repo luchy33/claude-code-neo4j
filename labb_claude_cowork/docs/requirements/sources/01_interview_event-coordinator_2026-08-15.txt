@@ -1,0 +1,27 @@
+STAKEHOLDER INTERVIEW 2 - Event coordinator
+Interviewee: Sunniva Berg (event coordinator, Ekte Mat AS)
+Date: 15 Aug 2026   Duration: 50 min
+[SYNTHETIC DATA - created for INFO212 Lab 7. All persons and companies are fictional.]
+
+Q: Walk us through what happens when an inquiry arrives.
+A: I read the e-mail, check the calendar in Google to see if we have capacity that day, reply with
+a quote in Word, and when they say yes I add a row in "Bestillinger 2025.xlsx". Then I print the
+order and put it on the kitchen board. Changes in guest numbers come by phone, and I have to
+remember to update both the sheet and the printout. Sometimes I forget.
+
+Q: How long does it take to answer a request?
+A: On a normal week one or two days. In December and in May it can be a week. People get annoyed.
+
+Q: What about the deposit Ingrid mentioned?
+A: Honestly, corporate clients hate prepayment. Fjordtek and the other big firms want one invoice per
+month with all their lunches on it, sent as EHF. If we force a deposit on them, we will lose them.
+For weddings a deposit makes sense.
+
+Q: What else would help you?
+A: A calendar that shows how many guests we already have per day, so I do not overbook. Our kitchen
+can do about 400 covers a day, 250 if there is a wedding with a served dinner. And automatic
+reminders to customers about final guest numbers seven days before the event.
+
+Q: Allergies?
+A: Very important. Every order has to show allergies and diets per guest group, and the kitchen must
+confirm they have seen it. We had a nut incident in 2024 - nobody was hurt, but it was close.

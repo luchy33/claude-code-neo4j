@@ -1,0 +1,13 @@
+Kick-off meeting - Ekte Mat digital ordering project
+12 Aug 2026, Ekte Mat kitchen, Bergen
+[SYNTHETIC DATA - INFO212 Lab 7]
+Present: Ingrid Solheim (owner), Sunniva Berg (events), student project team (3)
+
+- Goal: replace e-mail/phone/Excel ordering with an online ordering and event booking system
+- Must integrate with Fiken (accounting) and Vipps (payments). Google Workspace used for e-mail/calendar
+- Customer groups: corporate (weekly lunches, meetings), private (parties), weddings, health-conscious
+- Soft launch target: 1 March 2027. Wedding season starts in May
+- Team will work in 2-week sprints. Ingrid acts as product owner; available Tuesdays 09-10
+- Action: team interviews Sunniva, Mateo and one corporate customer before 20 Aug
+- Action: Ingrid sends order export from Excel (orders 2024-2025) - DONE, see orders file
+- Open question: build our own system or configure an off-the-shelf catering SaaS?

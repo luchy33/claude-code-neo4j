@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field %}
+{% block title %}Preview picture – Admin{% endblock %}
+{% block content %}
+  <h2>Preview the new picture for {{ item.name_en }}</h2>
+  <p>The new picture is <strong>not saved yet</strong>. Save it, try again, or discard it.</p>
+  <div class="row">
+    <div class="preview">
+      <h3>Current</h3>
+      {% if item.image_filename %}
+        <img src="{{ url_for('shop.image', filename=item.image_filename) }}" alt="Current picture">
+      {% else %}<p class="muted">No picture yet.</p>{% endif %}
+    </div>
+    <div class="preview">
+      <h3>New</h3>
+      <img src="{{ url_for('admin.pending_image', token=token) }}" alt="New picture of {{ item.name_en }}">
+    </div>
+  </div>
+  <div style="margin: 16px 0">
+    <form method="post" action="{{ url_for('admin.save_food_item_image', item_id=item.id) }}" style="display:inline">
+      {{ csrf_field() }}<button type="submit">Save picture</button>
+    </form>
+    <form method="post" action="{{ url_for('admin.discard_food_item_image', item_id=item.id) }}" style="display:inline">
+      {{ csrf_field() }}<button type="submit" class="secondary">Discard</button>
+    </form>
+  </div>
+
+  <h3>Refine with a new instruction</h3>
+  <form method="post" class="stacked" action="{{ url_for('admin.generate_food_item_image', item_id=item.id) }}">
+    {{ csrf_field() }}
+    <input type="hidden" name="base" value="pending">
+    <label for="instruction">Change the new picture</label>
+    <textarea id="instruction" name="instruction" rows="3" maxlength="1000" required
+              placeholder="e.g. Make the bowl blue and add a slice of bread"></textarea>
+    {% if last_instruction %}<p class="muted">Last instruction: {{ last_instruction }}</p>{% endif %}
+    <p><button type="submit">Refine and preview</button></p>
+  </form>
+{% endblock %}

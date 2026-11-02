@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field, food_image %}
+{% block title %}Menu – Ekte Mat Online{% endblock %}
+{% block content %}
+  <h2>Our menu</h2>
+  {% for category, items in menu.items() if items %}
+    <section>
+      <h3>{{ category.label }}</h3>
+      <div class="cards">
+        {% for item in items %}
+          <article class="card" id="item-{{ category.value }}-{{ item.id }}">
+            {{ food_image(item) }}
+            <div class="body">
+              <h4>{{ item.name_en }}</h4>
+              <div class="muted">{{ item.name_no }}</div>
+              {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+              <p><strong>{{ item.price_nok }} NOK</strong> per portion<br>
+                 <small>Minimum order: {{ item.min_order_quantity }}</small></p>
+              {% if item.allergens %}
+                <div><small>Allergens: {{ item.sorted_allergens() | map(attribute='label') | join(', ') }}</small></div>
+              {% endif %}
+              {% for label in item.sorted_dietary_labels() %}<span class="tag">{{ label.label }}</span>{% endfor %}
+              <form method="post" action="{{ url_for('shop.add_to_cart') }}" class="add-to-cart">
+                {{ csrf_field() }}
+                <input type="hidden" name="food_item_id" value="{{ item.id }}">
+                <input type="hidden" name="section" value="{{ category.value }}">
+                <label for="qty-{{ category.value }}-{{ item.id }}">Portions</label>
+                <input type="number" id="qty-{{ category.value }}-{{ item.id }}" name="quantity"
+                       value="{{ item.min_order_quantity }}" min="{{ item.min_order_quantity }}" max="1000" step="1" required>
+                <button type="submit">Add to cart</button>
+              </form>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% else %}
+    <p>The menu is empty. Run <code>python seed.py</code> to add synthetic food items.</p>
+  {% endfor %}
+{% endblock %}

@@ -1,0 +1,21 @@
+STAKEHOLDER INTERVIEW 4 - Corporate customer
+Interviewee: Henrik Aas (office manager, Fjordtek AS - fictional company, 180 employees)
+Date: 19 Aug 2026   Duration: 25 min (video call)
+[SYNTHETIC DATA - created for INFO212 Lab 7. All persons and companies are fictional.]
+
+Q: How do you order from Ekte Mat today?
+A: I send an e-mail every Thursday with next week's lunch meetings. Then I wait for a confirmation.
+Sometimes it arrives Monday morning, which is too late for me.
+
+Q: What would make it better?
+A: A login for our company where I can see our standing orders, copy last week's order, and change the
+number of people until 10:00 the day before. Several of my colleagues should be able to order, but
+only I should approve anything above 15 000 NOK.
+
+Q: Payment?
+A: One EHF invoice per month, with our cost-centre code on each line. We cannot prepay, our finance
+department does not allow it.
+
+Q: Anything else?
+A: Our IT department will ask where our data is stored. They want it in the EU/EEA, and they want to
+know that you delete our employees' names when we stop being a customer.

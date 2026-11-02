@@ -1,0 +1,13 @@
+Current IT landscape at Ekte Mat (sketch from Ingrid, typed up by the team)
+[SYNTHETIC DATA - INFO212 Lab 7]
+
+- Website: Wix, 6 pages, contact form -> sends e-mail to post@ektemat.example
+- E-mail + calendar: Google Workspace (3 users)
+- Orders: Excel file "Bestillinger 2025.xlsx" on Google Drive
+- Accounting: Fiken (has a REST API; supports EHF invoices)
+- Payments: Vipps (private customers), bank transfer / invoice (companies)
+- Kitchen: printed paper orders on a board; one old iPad nobody uses
+- Driver: own phone, Google Maps
+- No customer database; customer details only in e-mail threads
+Constraints mentioned: small team, nobody technical in-house, prefer low running cost (< 3 000 NOK/month),
+data must stay in EU/EEA (GDPR), Norwegian and English UI.

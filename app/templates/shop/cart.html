@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field, error_list %}
+{% block title %}Cart – Ekte Mat Online{% endblock %}
+{% block content %}
+  <h2>Your cart</h2>
+  {{ error_list(errors) }}
+  {% if lines %}
+    <form method="post" action="{{ url_for('shop.update_cart') }}" id="cart-form">
+      {{ csrf_field() }}
+    </form>
+    <table class="cart-table">
+      <thead>
+        <tr>
+          <th>Dish</th>
+          <th class="number">Price per portion</th>
+          <th class="number">Minimum</th>
+          <th class="number">Portions</th>
+          <th class="number">Line total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in lines %}
+          {% set item = line.food_item %}
+          <tr>
+            <td><strong>{{ item.name_en }}</strong><br><small>{{ item.name_no }}</small></td>
+            <td class="number">{{ item.price_nok }} NOK</td>
+            <td class="number">{{ item.min_order_quantity }}</td>
+            <td class="number">
+              <label for="qty-{{ item.id }}" class="visually-hidden">Portions of {{ item.name_en }}</label>
+              <input type="number" id="qty-{{ item.id }}" name="qty-{{ item.id }}" form="cart-form"
+                     value="{{ entered.get(item.id, line.quantity) }}" min="0" max="1000" step="1" required>
+            </td>
+            <td class="number">{{ line.line_total_nok }} NOK</td>
+            <td>
+              <form method="post" action="{{ url_for('shop.remove_from_cart', item_id=item.id) }}">
+                {{ csrf_field() }}
+                <button type="submit" class="link-button">Remove</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p><button type="submit" form="cart-form" class="secondary">Update quantities</button>
+       <small>Set a dish to 0 to remove it.</small></p>
+
+    <p class="cart-total">Estimated total: <strong>{{ total_nok }} NOK</strong></p>
+    <p class="muted" style="text-align:right">The final price is confirmed by Ekte Mat when your order is approved.</p>
+
+    <p style="text-align:right">
+      {% if g.user %}
+        <a class="button" href="{{ url_for('shop.checkout') }}">Continue to order</a>
+      {% else %}
+        <a class="button" href="{{ url_for('account.login', next=url_for('shop.checkout')) }}">Log in to order</a><br>
+        <small>New customer? <a href="{{ url_for('account.register', next=url_for('shop.checkout')) }}">Create an account</a>. Your cart is kept.</small>
+      {% endif %}
+    </p>
+  {% else %}
+    <p>Your cart is empty.</p>
+    <p><a class="button" href="{{ url_for('shop.index') }}">Browse the menu</a></p>
+  {% endif %}
+{% endblock %}

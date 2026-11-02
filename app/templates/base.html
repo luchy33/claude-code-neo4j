@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Ekte Mat Online{% endblock %}</title>
+  <style>
+    :root { --accent: #7a4b1e; --muted: #666; --line: #ddd; --bg-soft: #faf7f2; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; color: #222; }
+    a { color: var(--accent); }
+    header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); }
+    header h1 a { text-decoration: none; color: inherit; }
+    nav { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+    nav form { margin: 0; }
+    .link-button { background: none; border: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; }
+    .flash { padding: 10px 14px; border-radius: 6px; margin: 16px 0; }
+    .flash.success { background: #e7f4e4; }
+    .flash.error, .errors { background: #fbe9e7; padding: 10px 14px; border-radius: 6px; }
+    .errors ul { margin: 0; padding-left: 20px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+    .card { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; }
+    .card img, .card .placeholder { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; background: var(--bg-soft); }
+    .card .placeholder { display: flex; align-items: center; justify-content: center; color: var(--muted); }
+    .card .body { padding: 10px 14px 14px; }
+    .card h4 { margin: 0 0 4px; }
+    .muted, small { color: var(--muted); }
+    .tag { display: inline-block; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 10px; padding: 0 8px; font-size: 0.85em; margin: 2px 2px 0 0; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    form.stacked label { display: block; margin: 12px 0 4px; font-weight: 600; }
+    form.stacked input[type=text], form.stacked input[type=email], form.stacked input[type=password],
+    form.stacked input[type=number], form.stacked textarea, form.stacked select { width: 100%; max-width: 480px; padding: 6px; font: inherit; }
+    fieldset { border: 1px solid var(--line); border-radius: 6px; margin: 12px 0; }
+    fieldset label { display: inline-block; font-weight: normal; margin: 4px 14px 4px 0; }
+    button, .button { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 8px 14px; font: inherit; cursor: pointer; text-decoration: none; display: inline-block; }
+    button.secondary { background: #888; }
+    .row { display: flex; flex-wrap: wrap; gap: 24px; }
+    .row > * { flex: 1 1 300px; }
+    .add-to-cart { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
+    .add-to-cart input[type=number], .cart-table input[type=number] { width: 80px; padding: 5px; font: inherit; }
+    .cart-table td.number, .cart-table th.number { text-align: right; white-space: nowrap; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    td.number, th.number { text-align: right; white-space: nowrap; }
+    .badge { display: inline-block; border-radius: 10px; padding: 1px 9px; font-size: 0.85em; font-weight: 600; white-space: nowrap; }
+    .status-submitted { background: #fff3cd; } .status-approved { background: #d9ecff; }
+    .status-in_preparation { background: #e8ddff; } .status-delivered { background: #dff3dc; }
+    .status-rejected, .status-cancelled { background: #eee; color: #555; }
+    .payment-not_paid { background: #fbe9e7; } .payment-deposit_paid { background: #fff3cd; }
+    .payment-invoiced { background: #d9ecff; } .payment-paid { background: #dff3dc; }
+    tr.has-notes td { background: #fff6e0; }
+    .filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin: 12px 0; }
+    .filters label { display: flex; flex-direction: column; font-size: 0.9em; gap: 2px; }
+    .filters input, .filters select { padding: 5px; font: inherit; }
+    .guest-row { display: grid; grid-template-columns: 1fr 110px 2fr; gap: 8px; margin-bottom: 8px; }
+    .guest-row input { width: 100%; padding: 6px; font: inherit; }
+    @media (max-width: 600px) { .guest-row { grid-template-columns: 1fr; } }
+    .cart-total { font-size: 1.2em; text-align: right; margin: 16px 0; }
+    .question { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 12px 0; max-width: 720px; }
+    .question p { margin: 4px 0; }
+    .question-body { white-space: pre-line; }
+    .answer { background: var(--bg-soft); border-left: 3px solid var(--accent); padding: 6px 12px; margin-top: 8px; }
+    .badge.waiting { background: #fff3cd; } .badge.answered { background: #dff3dc; }
+    .preview img { max-width: 100%; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-soft); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><a href="{{ url_for('shop.index') }}">Ekte Mat</a></h1>
+    <nav>
+      <a href="{{ url_for('shop.index') }}">Menu</a>
+      <a href="{{ url_for('shop.cart') }}">Cart ({{ cart_count }})</a>
+      {% if g.user %}
+        {% if g.user.is_admin %}<a href="{{ url_for('admin.index') }}">Admin</a>
+          <a href="{{ url_for('admin.questions') }}">Questions</a>{% endif %}
+        {% if not g.user.is_admin %}<a href="{{ url_for('account.orders') }}">My orders</a>{% endif %}
+        <a href="{{ url_for('account.index') }}">{{ g.user.name }}</a>
+        <form method="post" action="{{ url_for('account.logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="link-button">Log out</button>
+        </form>
+      {% else %}
+        <a href="{{ url_for('account.login') }}">Log in</a>
+        <a href="{{ url_for('account.register') }}">Register</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main>
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

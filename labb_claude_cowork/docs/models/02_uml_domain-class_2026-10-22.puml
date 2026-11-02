@@ -1,0 +1,227 @@
+@startuml
+' Ekte Mat Online - domain class diagram (INFO212), 2026-10-22
+' Attributes, multiplicities and associations only (no methods).
+' Attribute notation: name : Type [multiplicity] {constraint}; default multiplicity is [1].
+' Money = amount in NOK. This file is the input for the SQL DDL generator.
+skinparam defaultFontName Arial
+skinparam classAttributeIconSize 0
+hide empty methods
+hide circle
+title Ekte Mat Online - domain model
+
+abstract class Customer {
+  name : String
+  email : String [0..1]
+  phone : String [0..1]
+  createdAt : DateTime
+}
+class PrivateCustomer {
+}
+class CorporateCustomer {
+  organisationNumber : String {unique}
+  monthlyInvoicing : Boolean
+  relationshipEndedAt : DateTime [0..1]
+}
+class CompanyUser {
+  name : String
+  email : String {unique}
+}
+class Order {
+  orderNumber : String {unique}
+  eventType : EventType
+  eventDate : Date
+  status : OrderStatus
+  channel : OrderChannel
+  deliveryMethod : DeliveryMethod
+  deliveryAddress : String [0..1]
+  requestedDeliveryTime : Time [0..1]
+  customerReference : String [0..1]
+  createdAt : DateTime
+  reminderSentAt : DateTime [0..1]
+}
+class GuestGroup {
+  label : String [0..1]
+  guestCount : Integer {>0}
+  dietNotes : String [0..1]
+}
+class OrderLine {
+  quantity : Integer {>0}
+}
+class Menu {
+  season : String
+  validFrom : Date
+  validTo : Date [0..1]
+  published : Boolean
+}
+class Dish {
+  nameNo : String
+  nameEn : String
+  pricePerPersonNok : Money {>=0}
+}
+class Allergen {
+  code : String {unique}
+  nameNo : String
+  nameEn : String
+}
+class Ingredient {
+  name : String
+}
+class Supplier {
+  name : String
+  supplierType : SupplierType
+  location : String [0..1]
+}
+class StaffUser {
+  name : String
+  role : StaffRole
+  pinHash : String [0..1]
+}
+class AllergyConfirmation {
+  confirmedAt : DateTime
+}
+class StandingOrder {
+  weekday : Weekday
+  startDate : Date
+  endDate : Date [0..1]
+  active : Boolean
+  deliveryMethod : DeliveryMethod
+  deliveryAddress : String [0..1]
+  deliveryTime : Time [0..1]
+  customerReference : String [0..1]
+}
+class StandingOrderLine {
+  quantity : Integer {>0}
+}
+class Invoice {
+  invoiceNumber : String {unique}
+  periodStart : Date [0..1]
+  periodEnd : Date [0..1]
+  format : InvoiceFormat
+  status : InvoiceStatus
+  fikenInvoiceId : String [0..1] {unique}
+  issuedAt : DateTime [0..1]
+}
+class InvoiceLine {
+  description : String
+  amountNok : Money {>=0}
+  customerReference : String [0..1]
+}
+class Payment {
+  paymentType : PaymentType
+  amountNok : Money {>0}
+  vippsReference : String {unique}
+  status : PaymentStatus
+  paidAt : DateTime [0..1]
+}
+class DataSubjectRequest {
+  requestType : RequestType
+  receivedAt : DateTime
+  completedAt : DateTime [0..1]
+}
+class CapacityLimit {
+  validFrom : Date {unique}
+  maxCoversPerDay : Integer {>0}
+  maxCoversWithWeddingDinner : Integer {>0}
+}
+
+enum OrderStatus {
+  REQUESTED
+  REJECTED
+  AWAITING_DEPOSIT
+  CONFIRMED
+  IN_PREPARATION
+  DELIVERED
+  INVOICED
+  CANCELLED
+}
+enum EventType {
+  LUNCH_MEETING
+  PARTY
+  WEDDING_DINNER
+  OTHER
+}
+enum OrderChannel {
+  ONLINE
+  PHONE
+  EMAIL
+}
+enum DeliveryMethod {
+  DELIVERY
+  PICK_UP
+}
+enum Weekday {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+  SUN
+}
+enum SupplierType {
+  FARM
+  BOAT
+  OTHER
+}
+enum StaffRole {
+  EVENT_COORDINATOR
+  HEAD_CHEF
+  KITCHEN_STAFF
+  OWNER
+}
+enum InvoiceFormat {
+  EHF
+  PDF
+}
+enum InvoiceStatus {
+  DRAFT
+  TRANSFERRED_TO_FIKEN
+}
+enum PaymentType {
+  DEPOSIT
+  FULL
+}
+enum PaymentStatus {
+  REQUESTED
+  PAID
+}
+enum RequestType {
+  ACCESS
+  DELETION
+}
+
+Customer <|-- PrivateCustomer
+Customer <|-- CorporateCustomer
+
+CorporateCustomer "1" *-- "1..*" CompanyUser : has users >
+Customer "1" -- "0..*" Order : places >
+CompanyUser "0..1" -- "0..*" Order : submits >
+Order "1" *-- "1..*" GuestGroup : consists of >
+GuestGroup "0..*" -- "0..*" Allergen : has >
+Order "1" *-- "1..*" OrderLine : contains >
+OrderLine "0..*" -- "1" Dish : refers to >
+Menu "0..*" -- "1..*" Dish : lists >
+Dish "0..*" -- "0..*" Allergen : contains >
+Dish "0..*" -- "0..*" Ingredient : uses >
+Ingredient "0..*" -- "0..1" Supplier : supplied by >
+Order "1" *-- "0..1" AllergyConfirmation : confirmed by >
+AllergyConfirmation "0..*" -- "1" StaffUser : given by >
+CorporateCustomer "1" -- "0..*" StandingOrder : has >
+StandingOrder "1" *-- "1..*" StandingOrderLine : contains >
+StandingOrderLine "0..*" -- "1" Dish : refers to >
+StandingOrder "0..1" -- "0..*" Order : generates >
+Customer "1" -- "0..*" Invoice : is billed >
+Invoice "1" *-- "1..*" InvoiceLine : contains >
+InvoiceLine "0..1" -- "1" Order : bills >
+Order "1" -- "0..*" Payment : is paid by >
+Customer "1" -- "0..*" DataSubjectRequest : submits >
+
+note top of CapacityLimit
+  ASSUMPTION: capacity values and whether
+  they block or warn are unresolved (ISS-06).
+end note
+note top of CorporateCustomer
+  ASSUMPTION: organisationNumber is
+  needed to address EHF invoices.
+end note
+@enduml

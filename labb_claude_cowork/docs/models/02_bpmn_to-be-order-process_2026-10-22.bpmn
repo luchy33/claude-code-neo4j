@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" id="Defs_tobe" targetNamespace="http://ektemat.example/bpmn" exporter="EkteMat INFO212 generator" exporterVersion="1.0">
+<bpmn:collaboration id="Collab_tobe">
+<bpmn:participant id="P_Customer" name="Customer" processRef="Proc_P_Customer" />
+<bpmn:participant id="P_EkteMat" name="Ekte Mat AS" processRef="Proc_P_EkteMat" />
+<bpmn:participant id="P_Vipps" name="Vipps (external)" />
+<bpmn:participant id="P_Fiken" name="Fiken (external)" />
+<bpmn:messageFlow id="Msg_1" name="Booking request" sourceRef="c_submit" targetRef="s_start" />
+<bpmn:messageFlow id="Msg_2" name="Receipt" sourceRef="s_store" targetRef="c_rcpt" />
+<bpmn:messageFlow id="Msg_3" name="Alternative / decline" sourceRef="e_decl" targetRef="c_alt" />
+<bpmn:messageFlow id="Msg_4" name="Confirmation" sourceRef="s_confirm" targetRef="c_conf" />
+<bpmn:messageFlow id="Msg_5" name="Deposit request" sourceRef="s_dep" targetRef="c_pay" />
+<bpmn:messageFlow id="Msg_6" name="Payment request" sourceRef="s_dep" targetRef="P_Vipps" />
+<bpmn:messageFlow id="Msg_7" name="Payment confirmed" sourceRef="P_Vipps" targetRef="s_dep" />
+<bpmn:messageFlow id="Msg_8" name="Reminder" sourceRef="s_rem" targetRef="c_remrcv" />
+<bpmn:messageFlow id="Msg_9" name="Final numbers / changes" sourceRef="c_confirm" targetRef="s_upd" />
+<bpmn:messageFlow id="Msg_10" name="Food" sourceRef="d_del" targetRef="c_food" />
+<bpmn:messageFlow id="Msg_11" name="Food (pick-up)" sourceRef="k_pick" targetRef="c_food" />
+<bpmn:messageFlow id="Msg_12" name="Invoice / payment" sourceRef="s_inv" targetRef="c_pay2" />
+<bpmn:messageFlow id="Msg_13" name="Invoice data" sourceRef="s_inv" targetRef="P_Fiken" />
+<bpmn:textAnnotation id="Ann_legend"><bpmn:text>Blue = supported by Ekte Mat Online. [US-xx] = user story in 01_Requirements/EkteMat_backlog_v1.xlsx.</bpmn:text></bpmn:textAnnotation>
+<bpmn:textAnnotation id="Ann_dep"><bpmn:text>Deposit scope is unresolved: all bookings or weddings only? (ISS-01)</bpmn:text></bpmn:textAnnotation>
+<bpmn:textAnnotation id="Ann_phone"><bpmn:text>Phone and e-mail orders are entered by the coordinator into the same order record (US-09; ISS-12).</bpmn:text></bpmn:textAnnotation>
+<bpmn:textAnnotation id="Ann_owner"><bpmn:text>No per-order task: the monthly manual reconciliation is replaced by the Fiken integration (US-24, INFERRED).</bpmn:text></bpmn:textAnnotation>
+<bpmn:association id="Ann_dep_assoc" sourceRef="Ann_dep" targetRef="s_gwdep" />
+</bpmn:collaboration>
+<bpmn:process id="Proc_P_Customer" isExecutable="false">
+<bpmn:startEvent id="c_start" name="Catering need arises"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 1 (INFERRED)</bpmn:documentation><bpmn:outgoing>Flow_tobe_1</bpmn:outgoing></bpmn:startEvent>
+<bpmn:task id="c_browse" name="Browse menus, prices, origin and allergens [US-01, US-05, US-06]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-01, US-05, US-06</bpmn:documentation><bpmn:incoming>Flow_tobe_1</bpmn:incoming><bpmn:outgoing>Flow_tobe_2</bpmn:outgoing></bpmn:task>
+<bpmn:task id="c_submit" name="Submit booking request with date, guest groups and allergies [US-02, US-03, US-07]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-02, US-03, US-07</bpmn:documentation><bpmn:incoming>Flow_tobe_2</bpmn:incoming><bpmn:outgoing>Flow_tobe_3</bpmn:outgoing></bpmn:task>
+<bpmn:intermediateCatchEvent id="c_rcpt" name="Receipt received [US-04]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-04</bpmn:documentation><bpmn:incoming>Flow_tobe_3</bpmn:incoming><bpmn:outgoing>Flow_tobe_4</bpmn:outgoing><bpmn:messageEventDefinition id="c_rcpt_def" /></bpmn:intermediateCatchEvent>
+<bpmn:eventBasedGateway id="c_evgw" name="Wait for answer"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-04 (INFERRED)</bpmn:documentation><bpmn:incoming>Flow_tobe_4</bpmn:incoming><bpmn:outgoing>Flow_tobe_5</bpmn:outgoing><bpmn:outgoing>Flow_tobe_6</bpmn:outgoing></bpmn:eventBasedGateway>
+<bpmn:intermediateCatchEvent id="c_alt" name="Alternative date or decline received"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 3</bpmn:documentation><bpmn:incoming>Flow_tobe_6</bpmn:incoming><bpmn:outgoing>Flow_tobe_7</bpmn:outgoing><bpmn:messageEventDefinition id="c_alt_def" /></bpmn:intermediateCatchEvent>
+<bpmn:endEvent id="c_endalt" name="Not booked"><bpmn:documentation>Source: INFERRED</bpmn:documentation><bpmn:incoming>Flow_tobe_7</bpmn:incoming></bpmn:endEvent>
+<bpmn:intermediateCatchEvent id="c_conf" name="Confirmation received [US-04]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-04</bpmn:documentation><bpmn:incoming>Flow_tobe_5</bpmn:incoming><bpmn:outgoing>Flow_tobe_8</bpmn:outgoing><bpmn:messageEventDefinition id="c_conf_def" /></bpmn:intermediateCatchEvent>
+<bpmn:exclusiveGateway id="c_gwdep" name="Deposit requested?"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-22 (UNRESOLVED, ISS-01)</bpmn:documentation><bpmn:incoming>Flow_tobe_8</bpmn:incoming><bpmn:outgoing>Flow_tobe_9</bpmn:outgoing><bpmn:outgoing>Flow_tobe_10</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="c_pay" name="Pay deposit with Vipps [US-22]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-22</bpmn:documentation><bpmn:incoming>Flow_tobe_9</bpmn:incoming><bpmn:outgoing>Flow_tobe_11</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="c_mdep" name=""><bpmn:documentation>Merge gateway</bpmn:documentation><bpmn:incoming>Flow_tobe_10</bpmn:incoming><bpmn:incoming>Flow_tobe_11</bpmn:incoming><bpmn:outgoing>Flow_tobe_12</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:intermediateCatchEvent id="c_remrcv" name="Reminder received [US-12]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-12</bpmn:documentation><bpmn:incoming>Flow_tobe_12</bpmn:incoming><bpmn:outgoing>Flow_tobe_13</bpmn:outgoing><bpmn:messageEventDefinition id="c_remrcv_def" /></bpmn:intermediateCatchEvent>
+<bpmn:task id="c_confirm" name="Confirm or change guest numbers and allergies online [US-11, US-12]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-11, US-12</bpmn:documentation><bpmn:incoming>Flow_tobe_13</bpmn:incoming><bpmn:outgoing>Flow_tobe_14</bpmn:outgoing></bpmn:task>
+<bpmn:task id="c_food" name="Receive or collect the food [US-14]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-14</bpmn:documentation><bpmn:incoming>Flow_tobe_14</bpmn:incoming><bpmn:outgoing>Flow_tobe_15</bpmn:outgoing></bpmn:task>
+<bpmn:task id="c_pay2" name="Pay with Vipps or via monthly EHF invoice [US-21, US-23]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-21, US-23</bpmn:documentation><bpmn:incoming>Flow_tobe_15</bpmn:incoming><bpmn:outgoing>Flow_tobe_16</bpmn:outgoing></bpmn:task>
+<bpmn:endEvent id="c_end" name="Order completed"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 11</bpmn:documentation><bpmn:incoming>Flow_tobe_16</bpmn:incoming></bpmn:endEvent>
+<bpmn:sequenceFlow id="Flow_tobe_1" name="" sourceRef="c_start" targetRef="c_browse" />
+<bpmn:sequenceFlow id="Flow_tobe_2" name="" sourceRef="c_browse" targetRef="c_submit" />
+<bpmn:sequenceFlow id="Flow_tobe_3" name="" sourceRef="c_submit" targetRef="c_rcpt" />
+<bpmn:sequenceFlow id="Flow_tobe_4" name="" sourceRef="c_rcpt" targetRef="c_evgw" />
+<bpmn:sequenceFlow id="Flow_tobe_5" name="" sourceRef="c_evgw" targetRef="c_conf" />
+<bpmn:sequenceFlow id="Flow_tobe_6" name="" sourceRef="c_evgw" targetRef="c_alt" />
+<bpmn:sequenceFlow id="Flow_tobe_7" name="" sourceRef="c_alt" targetRef="c_endalt" />
+<bpmn:sequenceFlow id="Flow_tobe_8" name="" sourceRef="c_conf" targetRef="c_gwdep" />
+<bpmn:sequenceFlow id="Flow_tobe_9" name="Yes" sourceRef="c_gwdep" targetRef="c_pay" />
+<bpmn:sequenceFlow id="Flow_tobe_10" name="No" sourceRef="c_gwdep" targetRef="c_mdep" />
+<bpmn:sequenceFlow id="Flow_tobe_11" name="" sourceRef="c_pay" targetRef="c_mdep" />
+<bpmn:sequenceFlow id="Flow_tobe_12" name="" sourceRef="c_mdep" targetRef="c_remrcv" />
+<bpmn:sequenceFlow id="Flow_tobe_13" name="" sourceRef="c_remrcv" targetRef="c_confirm" />
+<bpmn:sequenceFlow id="Flow_tobe_14" name="" sourceRef="c_confirm" targetRef="c_food" />
+<bpmn:sequenceFlow id="Flow_tobe_15" name="" sourceRef="c_food" targetRef="c_pay2" />
+<bpmn:sequenceFlow id="Flow_tobe_16" name="" sourceRef="c_pay2" targetRef="c_end" />
+</bpmn:process>
+<bpmn:process id="Proc_P_EkteMat" isExecutable="false">
+<bpmn:laneSet id="LS_P_EkteMat">
+<bpmn:lane id="L_Sys" name="Ekte Mat Online"><bpmn:flowNodeRef>s_start</bpmn:flowNodeRef><bpmn:flowNodeRef>s_store</bpmn:flowNodeRef><bpmn:flowNodeRef>s_confirm</bpmn:flowNodeRef><bpmn:flowNodeRef>s_gwdep</bpmn:flowNodeRef><bpmn:flowNodeRef>s_dep</bpmn:flowNodeRef><bpmn:flowNodeRef>s_mdep</bpmn:flowNodeRef><bpmn:flowNodeRef>s_kview</bpmn:flowNodeRef><bpmn:flowNodeRef>s_timer</bpmn:flowNodeRef><bpmn:flowNodeRef>s_rem</bpmn:flowNodeRef><bpmn:flowNodeRef>s_upd</bpmn:flowNodeRef><bpmn:flowNodeRef>s_inv</bpmn:flowNodeRef><bpmn:flowNodeRef>s_end</bpmn:flowNodeRef></bpmn:lane>
+<bpmn:lane id="L_Coord" name="Event coordinator"><bpmn:flowNodeRef>e_review</bpmn:flowNodeRef><bpmn:flowNodeRef>e_gw</bpmn:flowNodeRef><bpmn:flowNodeRef>e_decl</bpmn:flowNodeRef><bpmn:flowNodeRef>e_enddecl</bpmn:flowNodeRef></bpmn:lane>
+<bpmn:lane id="L_Kitchen" name="Kitchen"><bpmn:flowNodeRef>k_conf</bpmn:flowNodeRef><bpmn:flowNodeRef>k_prep</bpmn:flowNodeRef><bpmn:flowNodeRef>k_gw</bpmn:flowNodeRef><bpmn:flowNodeRef>k_pick</bpmn:flowNodeRef><bpmn:flowNodeRef>k_m</bpmn:flowNodeRef></bpmn:lane>
+<bpmn:lane id="L_Driver" name="Driver"><bpmn:flowNodeRef>d_del</bpmn:flowNodeRef></bpmn:lane>
+<bpmn:lane id="L_Owner" name="Owner"></bpmn:lane>
+</bpmn:laneSet>
+<bpmn:startEvent id="s_start" name="Booking request received"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-02</bpmn:documentation><bpmn:outgoing>Flow_tobe_17</bpmn:outgoing><bpmn:messageEventDefinition id="s_start_def" /></bpmn:startEvent>
+<bpmn:task id="s_store" name="Store request, send receipt, check capacity [US-02, US-04, US-10]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-02, US-04, US-10</bpmn:documentation><bpmn:incoming>Flow_tobe_17</bpmn:incoming><bpmn:outgoing>Flow_tobe_18</bpmn:outgoing></bpmn:task>
+<bpmn:task id="e_review" name="Review request in capacity calendar [US-09, US-10]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-09, US-10</bpmn:documentation><bpmn:incoming>Flow_tobe_18</bpmn:incoming><bpmn:outgoing>Flow_tobe_19</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="e_gw" name="Accept request?"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 3; EkteMat_backlog_v1.xlsx US-02 (review step ASSUMPTION)</bpmn:documentation><bpmn:incoming>Flow_tobe_19</bpmn:incoming><bpmn:outgoing>Flow_tobe_20</bpmn:outgoing><bpmn:outgoing>Flow_tobe_22</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="e_decl" name="Propose another date or decline"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 3</bpmn:documentation><bpmn:incoming>Flow_tobe_20</bpmn:incoming><bpmn:outgoing>Flow_tobe_21</bpmn:outgoing></bpmn:task>
+<bpmn:endEvent id="e_enddecl" name="Not booked"><bpmn:documentation>Source: INFERRED</bpmn:documentation><bpmn:incoming>Flow_tobe_21</bpmn:incoming></bpmn:endEvent>
+<bpmn:task id="s_confirm" name="Confirm order and notify customer [US-04]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-04</bpmn:documentation><bpmn:incoming>Flow_tobe_22</bpmn:incoming><bpmn:outgoing>Flow_tobe_23</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="s_gwdep" name="Deposit required? (ISS-01)"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-22; ISS-01</bpmn:documentation><bpmn:incoming>Flow_tobe_23</bpmn:incoming><bpmn:outgoing>Flow_tobe_24</bpmn:outgoing><bpmn:outgoing>Flow_tobe_25</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="s_dep" name="Request deposit via Vipps [US-21, US-22]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-21, US-22</bpmn:documentation><bpmn:incoming>Flow_tobe_24</bpmn:incoming><bpmn:outgoing>Flow_tobe_26</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="s_mdep" name=""><bpmn:documentation>Merge gateway</bpmn:documentation><bpmn:incoming>Flow_tobe_25</bpmn:incoming><bpmn:incoming>Flow_tobe_26</bpmn:incoming><bpmn:outgoing>Flow_tobe_27</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="s_kview" name="Show order on kitchen overview [US-15]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-15</bpmn:documentation><bpmn:incoming>Flow_tobe_27</bpmn:incoming><bpmn:outgoing>Flow_tobe_28</bpmn:outgoing></bpmn:task>
+<bpmn:task id="k_conf" name="Confirm allergy information [US-16]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-16</bpmn:documentation><bpmn:incoming>Flow_tobe_28</bpmn:incoming><bpmn:outgoing>Flow_tobe_29</bpmn:outgoing></bpmn:task>
+<bpmn:intermediateCatchEvent id="s_timer" name="7 days before event"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-12</bpmn:documentation><bpmn:incoming>Flow_tobe_29</bpmn:incoming><bpmn:outgoing>Flow_tobe_30</bpmn:outgoing><bpmn:timerEventDefinition id="s_timer_def" /></bpmn:intermediateCatchEvent>
+<bpmn:task id="s_rem" name="Send reminder for final guest numbers [US-12]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-12</bpmn:documentation><bpmn:incoming>Flow_tobe_30</bpmn:incoming><bpmn:outgoing>Flow_tobe_31</bpmn:outgoing></bpmn:task>
+<bpmn:task id="s_upd" name="Update order and kitchen overview [US-09, US-11]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-09, US-11</bpmn:documentation><bpmn:incoming>Flow_tobe_31</bpmn:incoming><bpmn:outgoing>Flow_tobe_32</bpmn:outgoing></bpmn:task>
+<bpmn:task id="k_prep" name="Prepare food from kitchen overview and prep list [US-15, US-20]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-15, US-20</bpmn:documentation><bpmn:incoming>Flow_tobe_32</bpmn:incoming><bpmn:outgoing>Flow_tobe_33</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="k_gw" name="Delivery or pick-up? [US-14]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-14</bpmn:documentation><bpmn:incoming>Flow_tobe_33</bpmn:incoming><bpmn:outgoing>Flow_tobe_34</bpmn:outgoing><bpmn:outgoing>Flow_tobe_35</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="d_del" name="Deliver to the address and time in the order [US-14]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-14</bpmn:documentation><bpmn:incoming>Flow_tobe_34</bpmn:incoming><bpmn:outgoing>Flow_tobe_36</bpmn:outgoing></bpmn:task>
+<bpmn:task id="k_pick" name="Hand over food at pick-up [US-14]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-14</bpmn:documentation><bpmn:incoming>Flow_tobe_35</bpmn:incoming><bpmn:outgoing>Flow_tobe_37</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="k_m" name=""><bpmn:documentation>Merge gateway</bpmn:documentation><bpmn:incoming>Flow_tobe_36</bpmn:incoming><bpmn:incoming>Flow_tobe_37</bpmn:incoming><bpmn:outgoing>Flow_tobe_38</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="s_inv" name="Create invoice in Fiken or capture Vipps payment [US-21, US-23, US-24]"><bpmn:documentation>Source: EkteMat_backlog_v1.xlsx US-21, US-23, US-24</bpmn:documentation><bpmn:incoming>Flow_tobe_38</bpmn:incoming><bpmn:outgoing>Flow_tobe_39</bpmn:outgoing></bpmn:task>
+<bpmn:endEvent id="s_end" name="Order completed"><bpmn:documentation>Source: 02_process_as-is-order-handling_2026-08-15.md step 11</bpmn:documentation><bpmn:incoming>Flow_tobe_39</bpmn:incoming></bpmn:endEvent>
+<bpmn:sequenceFlow id="Flow_tobe_17" name="" sourceRef="s_start" targetRef="s_store" />
+<bpmn:sequenceFlow id="Flow_tobe_18" name="" sourceRef="s_store" targetRef="e_review" />
+<bpmn:sequenceFlow id="Flow_tobe_19" name="" sourceRef="e_review" targetRef="e_gw" />
+<bpmn:sequenceFlow id="Flow_tobe_20" name="No" sourceRef="e_gw" targetRef="e_decl" />
+<bpmn:sequenceFlow id="Flow_tobe_21" name="" sourceRef="e_decl" targetRef="e_enddecl" />
+<bpmn:sequenceFlow id="Flow_tobe_22" name="Yes" sourceRef="e_gw" targetRef="s_confirm" />
+<bpmn:sequenceFlow id="Flow_tobe_23" name="" sourceRef="s_confirm" targetRef="s_gwdep" />
+<bpmn:sequenceFlow id="Flow_tobe_24" name="Yes" sourceRef="s_gwdep" targetRef="s_dep" />
+<bpmn:sequenceFlow id="Flow_tobe_25" name="No" sourceRef="s_gwdep" targetRef="s_mdep" />
+<bpmn:sequenceFlow id="Flow_tobe_26" name="" sourceRef="s_dep" targetRef="s_mdep" />
+<bpmn:sequenceFlow id="Flow_tobe_27" name="" sourceRef="s_mdep" targetRef="s_kview" />
+<bpmn:sequenceFlow id="Flow_tobe_28" name="" sourceRef="s_kview" targetRef="k_conf" />
+<bpmn:sequenceFlow id="Flow_tobe_29" name="" sourceRef="k_conf" targetRef="s_timer" />
+<bpmn:sequenceFlow id="Flow_tobe_30" name="" sourceRef="s_timer" targetRef="s_rem" />
+<bpmn:sequenceFlow id="Flow_tobe_31" name="" sourceRef="s_rem" targetRef="s_upd" />
+<bpmn:sequenceFlow id="Flow_tobe_32" name="" sourceRef="s_upd" targetRef="k_prep" />
+<bpmn:sequenceFlow id="Flow_tobe_33" name="" sourceRef="k_prep" targetRef="k_gw" />
+<bpmn:sequenceFlow id="Flow_tobe_34" name="Delivery" sourceRef="k_gw" targetRef="d_del" />
+<bpmn:sequenceFlow id="Flow_tobe_35" name="Pick-up" sourceRef="k_gw" targetRef="k_pick" />
+<bpmn:sequenceFlow id="Flow_tobe_36" name="" sourceRef="d_del" targetRef="k_m" />
+<bpmn:sequenceFlow id="Flow_tobe_37" name="" sourceRef="k_pick" targetRef="k_m" />
+<bpmn:sequenceFlow id="Flow_tobe_38" name="" sourceRef="k_m" targetRef="s_inv" />
+<bpmn:sequenceFlow id="Flow_tobe_39" name="" sourceRef="s_inv" targetRef="s_end" />
+</bpmn:process>
+<bpmndi:BPMNDiagram id="Dia_tobe"><bpmndi:BPMNPlane id="Plane_tobe" bpmnElement="Collab_tobe">
+<bpmndi:BPMNShape id="P_Customer_di" bpmnElement="P_Customer" isHorizontal="true"><dc:Bounds x="0" y="90" width="4075" height="240" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="P_EkteMat_di" bpmnElement="P_EkteMat" isHorizontal="true"><dc:Bounds x="0" y="370" width="4075" height="840" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="L_Sys_di" bpmnElement="L_Sys" isHorizontal="true"><dc:Bounds x="30" y="370" width="4045" height="240" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="L_Coord_di" bpmnElement="L_Coord" isHorizontal="true"><dc:Bounds x="30" y="610" width="4045" height="240" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="L_Kitchen_di" bpmnElement="L_Kitchen" isHorizontal="true"><dc:Bounds x="30" y="850" width="4045" height="120" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="L_Driver_di" bpmnElement="L_Driver" isHorizontal="true"><dc:Bounds x="30" y="970" width="4045" height="120" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="L_Owner_di" bpmnElement="L_Owner" isHorizontal="true"><dc:Bounds x="30" y="1090" width="4045" height="120" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="P_Vipps_di" bpmnElement="P_Vipps" isHorizontal="true"><dc:Bounds x="1355" y="1250" width="1020" height="60" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="P_Fiken_di" bpmnElement="P_Fiken" isHorizontal="true"><dc:Bounds x="3480" y="1250" width="544" height="60" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_start_di" bpmnElement="c_start"><dc:Bounds x="147" y="252" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="117" y="293" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_browse_di" bpmnElement="c_browse" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="268" y="224" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_submit_di" bpmnElement="c_submit" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="438" y="224" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_rcpt_di" bpmnElement="c_rcpt"><dc:Bounds x="657" y="252" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="627" y="216" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_evgw_di" bpmnElement="c_evgw"><dc:Bounds x="820" y="245" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="795" y="300" width="100" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_alt_di" bpmnElement="c_alt"><dc:Bounds x="1167" y="132" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1137" y="96" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_endalt_di" bpmnElement="c_endalt"><dc:Bounds x="1337" y="132" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1307" y="173" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_conf_di" bpmnElement="c_conf"><dc:Bounds x="1337" y="252" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1307" y="216" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_gwdep_di" bpmnElement="c_gwdep" isMarkerVisible="true"><dc:Bounds x="1500" y="245" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1475" y="300" width="100" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_pay_di" bpmnElement="c_pay" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="1628" y="104" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_mdep_di" bpmnElement="c_mdep" isMarkerVisible="true"><dc:Bounds x="1840" y="245" width="50" height="50" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_remrcv_di" bpmnElement="c_remrcv"><dc:Bounds x="2527" y="252" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="2497" y="216" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_confirm_di" bpmnElement="c_confirm" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="2648" y="224" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_food_di" bpmnElement="c_food"><dc:Bounds x="3158" y="224" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_pay2_di" bpmnElement="c_pay2" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="3668" y="224" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="c_end_di" bpmnElement="c_end"><dc:Bounds x="3887" y="252" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="3857" y="293" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="s_start_di" bpmnElement="s_start"><dc:Bounds x="487" y="412" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="457" y="453" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="s_store_di" bpmnElement="s_store" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="608" y="384" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_review_di" bpmnElement="e_review" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="778" y="744" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_gw_di" bpmnElement="e_gw" isMarkerVisible="true"><dc:Bounds x="990" y="765" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="965" y="820" width="100" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_decl_di" bpmnElement="e_decl"><dc:Bounds x="1118" y="624" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="e_enddecl_di" bpmnElement="e_enddecl"><dc:Bounds x="1337" y="652" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1307" y="693" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="s_confirm_di" bpmnElement="s_confirm" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="1288" y="384" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="s_gwdep_di" bpmnElement="s_gwdep" isMarkerVisible="true"><dc:Bounds x="1500" y="405" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1475" y="369" width="100" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="s_dep_di" bpmnElement="s_dep" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="1628" y="504" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="s_mdep_di" bpmnElement="s_mdep" isMarkerVisible="true"><dc:Bounds x="1840" y="405" width="50" height="50" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="s_kview_di" bpmnElement="s_kview" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="1968" y="384" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="k_conf_di" bpmnElement="k_conf" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="2138" y="864" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="s_timer_di" bpmnElement="s_timer"><dc:Bounds x="2357" y="412" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="2327" y="453" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="s_rem_di" bpmnElement="s_rem" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="2478" y="384" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="s_upd_di" bpmnElement="s_upd" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="2648" y="384" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="k_prep_di" bpmnElement="k_prep" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="2818" y="864" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="k_gw_di" bpmnElement="k_gw" isMarkerVisible="true"><dc:Bounds x="3030" y="885" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="3005" y="849" width="100" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="d_del_di" bpmnElement="d_del" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="3158" y="984" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="k_pick_di" bpmnElement="k_pick" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="3328" y="864" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="k_m_di" bpmnElement="k_m" isMarkerVisible="true"><dc:Bounds x="3540" y="885" width="50" height="50" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="s_inv_di" bpmnElement="s_inv" bioc:stroke="#1F4E78" bioc:fill="#DDEBF7" color:border-color="#1F4E78" color:background-color="#DDEBF7"><dc:Bounds x="3668" y="384" width="134" height="92" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="s_end_di" bpmnElement="s_end"><dc:Bounds x="3887" y="412" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="3857" y="453" width="96" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="Ann_legend_di" bpmnElement="Ann_legend"><dc:Bounds x="0" y="10" width="420" height="60" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="Ann_dep_di" bpmnElement="Ann_dep"><dc:Bounds x="1445" y="758" width="200" height="60" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="Ann_phone_di" bpmnElement="Ann_phone"><dc:Bounds x="1780" y="758" width="300" height="60" /></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="Ann_owner_di" bpmnElement="Ann_owner"><dc:Bounds x="250" y="1118" width="420" height="60" /></bpmndi:BPMNShape>
+<bpmndi:BPMNEdge id="Msg_1_di" bpmnElement="Msg_1"><di:waypoint x="505" y="316" /><di:waypoint x="505" y="412" /><bpmndi:BPMNLabel><dc:Bounds x="511" y="332" width="111" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_2_di" bpmnElement="Msg_2"><di:waypoint x="675" y="384" /><di:waypoint x="675" y="288" /><bpmndi:BPMNLabel><dc:Bounds x="681" y="332" width="55" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_3_di" bpmnElement="Msg_3"><di:waypoint x="1185" y="624" /><di:waypoint x="1185" y="168" /><bpmndi:BPMNLabel><dc:Bounds x="1191" y="332" width="153" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_4_di" bpmnElement="Msg_4"><di:waypoint x="1355" y="384" /><di:waypoint x="1355" y="288" /><bpmndi:BPMNLabel><dc:Bounds x="1361" y="332" width="90" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_5_di" bpmnElement="Msg_5"><di:waypoint x="1695" y="504" /><di:waypoint x="1695" y="196" /><bpmndi:BPMNLabel><dc:Bounds x="1701" y="332" width="111" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_6_di" bpmnElement="Msg_6"><di:waypoint x="1675" y="596" /><di:waypoint x="1675" y="1250" /><bpmndi:BPMNLabel><dc:Bounds x="1558" y="1212" width="111" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_7_di" bpmnElement="Msg_7"><di:waypoint x="1715" y="1250" /><di:waypoint x="1715" y="596" /><bpmndi:BPMNLabel><dc:Bounds x="1721" y="1212" width="125" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_8_di" bpmnElement="Msg_8"><di:waypoint x="2545" y="384" /><di:waypoint x="2545" y="288" /><bpmndi:BPMNLabel><dc:Bounds x="2551" y="332" width="62" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_9_di" bpmnElement="Msg_9"><di:waypoint x="2715" y="316" /><di:waypoint x="2715" y="384" /><bpmndi:BPMNLabel><dc:Bounds x="2721" y="332" width="167" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_10_di" bpmnElement="Msg_10"><di:waypoint x="3225" y="984" /><di:waypoint x="3225" y="350" /><di:waypoint x="3200" y="350" /><di:waypoint x="3200" y="316" /><bpmndi:BPMNLabel><dc:Bounds x="3231" y="354" width="34" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_11_di" bpmnElement="Msg_11"><di:waypoint x="3395" y="864" /><di:waypoint x="3395" y="350" /><di:waypoint x="3250" y="350" /><di:waypoint x="3250" y="316" /><bpmndi:BPMNLabel><dc:Bounds x="3401" y="354" width="104" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_12_di" bpmnElement="Msg_12"><di:waypoint x="3735" y="384" /><di:waypoint x="3735" y="316" /><bpmndi:BPMNLabel><dc:Bounds x="3741" y="332" width="125" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Msg_13_di" bpmnElement="Msg_13"><di:waypoint x="3735" y="476" /><di:waypoint x="3735" y="1250" /><bpmndi:BPMNLabel><dc:Bounds x="3741" y="1212" width="90" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_1_di" bpmnElement="Flow_tobe_1"><di:waypoint x="183" y="270" /><di:waypoint x="268" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_2_di" bpmnElement="Flow_tobe_2"><di:waypoint x="402" y="270" /><di:waypoint x="438" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_3_di" bpmnElement="Flow_tobe_3"><di:waypoint x="572" y="270" /><di:waypoint x="657" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_4_di" bpmnElement="Flow_tobe_4"><di:waypoint x="693" y="270" /><di:waypoint x="820" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_5_di" bpmnElement="Flow_tobe_5"><di:waypoint x="870" y="270" /><di:waypoint x="1337" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_6_di" bpmnElement="Flow_tobe_6"><di:waypoint x="845" y="245" /><di:waypoint x="845" y="150" /><di:waypoint x="1167" y="150" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_7_di" bpmnElement="Flow_tobe_7"><di:waypoint x="1203" y="150" /><di:waypoint x="1337" y="150" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_8_di" bpmnElement="Flow_tobe_8"><di:waypoint x="1373" y="270" /><di:waypoint x="1500" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_9_di" bpmnElement="Flow_tobe_9"><di:waypoint x="1525" y="245" /><di:waypoint x="1525" y="150" /><di:waypoint x="1628" y="150" /><bpmndi:BPMNLabel><dc:Bounds x="1531" y="213" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_10_di" bpmnElement="Flow_tobe_10"><di:waypoint x="1550" y="270" /><di:waypoint x="1840" y="270" /><bpmndi:BPMNLabel><dc:Bounds x="1558" y="248" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_11_di" bpmnElement="Flow_tobe_11"><di:waypoint x="1762" y="150" /><di:waypoint x="1865" y="150" /><di:waypoint x="1865" y="245" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_12_di" bpmnElement="Flow_tobe_12"><di:waypoint x="1890" y="270" /><di:waypoint x="2527" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_13_di" bpmnElement="Flow_tobe_13"><di:waypoint x="2563" y="270" /><di:waypoint x="2648" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_14_di" bpmnElement="Flow_tobe_14"><di:waypoint x="2782" y="270" /><di:waypoint x="3158" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_15_di" bpmnElement="Flow_tobe_15"><di:waypoint x="3292" y="270" /><di:waypoint x="3668" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_16_di" bpmnElement="Flow_tobe_16"><di:waypoint x="3802" y="270" /><di:waypoint x="3887" y="270" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_17_di" bpmnElement="Flow_tobe_17"><di:waypoint x="523" y="430" /><di:waypoint x="608" y="430" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_18_di" bpmnElement="Flow_tobe_18"><di:waypoint x="742" y="430" /><di:waypoint x="760" y="430" /><di:waypoint x="760" y="790" /><di:waypoint x="778" y="790" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_19_di" bpmnElement="Flow_tobe_19"><di:waypoint x="912" y="790" /><di:waypoint x="990" y="790" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_20_di" bpmnElement="Flow_tobe_20"><di:waypoint x="1015" y="765" /><di:waypoint x="1015" y="670" /><di:waypoint x="1118" y="670" /><bpmndi:BPMNLabel><dc:Bounds x="1021" y="733" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_21_di" bpmnElement="Flow_tobe_21"><di:waypoint x="1252" y="670" /><di:waypoint x="1337" y="670" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_22_di" bpmnElement="Flow_tobe_22"><di:waypoint x="1040" y="790" /><di:waypoint x="1270" y="790" /><di:waypoint x="1270" y="430" /><di:waypoint x="1288" y="430" /><bpmndi:BPMNLabel><dc:Bounds x="1048" y="768" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_23_di" bpmnElement="Flow_tobe_23"><di:waypoint x="1422" y="430" /><di:waypoint x="1500" y="430" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_24_di" bpmnElement="Flow_tobe_24"><di:waypoint x="1525" y="455" /><di:waypoint x="1525" y="550" /><di:waypoint x="1628" y="550" /><bpmndi:BPMNLabel><dc:Bounds x="1531" y="461" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_25_di" bpmnElement="Flow_tobe_25"><di:waypoint x="1550" y="430" /><di:waypoint x="1840" y="430" /><bpmndi:BPMNLabel><dc:Bounds x="1558" y="408" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_26_di" bpmnElement="Flow_tobe_26"><di:waypoint x="1762" y="550" /><di:waypoint x="1865" y="550" /><di:waypoint x="1865" y="455" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_27_di" bpmnElement="Flow_tobe_27"><di:waypoint x="1890" y="430" /><di:waypoint x="1968" y="430" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_28_di" bpmnElement="Flow_tobe_28"><di:waypoint x="2102" y="430" /><di:waypoint x="2120" y="430" /><di:waypoint x="2120" y="910" /><di:waypoint x="2138" y="910" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_29_di" bpmnElement="Flow_tobe_29"><di:waypoint x="2272" y="910" /><di:waypoint x="2290" y="910" /><di:waypoint x="2290" y="430" /><di:waypoint x="2357" y="430" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_30_di" bpmnElement="Flow_tobe_30"><di:waypoint x="2393" y="430" /><di:waypoint x="2478" y="430" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_31_di" bpmnElement="Flow_tobe_31"><di:waypoint x="2612" y="430" /><di:waypoint x="2648" y="430" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_32_di" bpmnElement="Flow_tobe_32"><di:waypoint x="2782" y="430" /><di:waypoint x="2800" y="430" /><di:waypoint x="2800" y="910" /><di:waypoint x="2818" y="910" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_33_di" bpmnElement="Flow_tobe_33"><di:waypoint x="2952" y="910" /><di:waypoint x="3030" y="910" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_34_di" bpmnElement="Flow_tobe_34"><di:waypoint x="3055" y="935" /><di:waypoint x="3055" y="1030" /><di:waypoint x="3158" y="1030" /><bpmndi:BPMNLabel><dc:Bounds x="3061" y="941" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_35_di" bpmnElement="Flow_tobe_35"><di:waypoint x="3080" y="910" /><di:waypoint x="3328" y="910" /><bpmndi:BPMNLabel><dc:Bounds x="3088" y="888" width="56" height="16" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_36_di" bpmnElement="Flow_tobe_36"><di:waypoint x="3292" y="1030" /><di:waypoint x="3565" y="1030" /><di:waypoint x="3565" y="935" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_37_di" bpmnElement="Flow_tobe_37"><di:waypoint x="3462" y="910" /><di:waypoint x="3540" y="910" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_38_di" bpmnElement="Flow_tobe_38"><di:waypoint x="3565" y="885" /><di:waypoint x="3565" y="430" /><di:waypoint x="3668" y="430" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Flow_tobe_39_di" bpmnElement="Flow_tobe_39"><di:waypoint x="3802" y="430" /><di:waypoint x="3887" y="430" /></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="Ann_dep_assoc_di" bpmnElement="Ann_dep_assoc"><di:waypoint x="1525" y="758" /><di:waypoint x="1525" y="455" /></bpmndi:BPMNEdge>
+</bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>

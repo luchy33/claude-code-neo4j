@@ -1,0 +1,18 @@
+
+# Variables de entorno y secretos
+.env
+.env.*
+!.env.example
+
+# Entorno virtual de Python
+.venv/
+
+# Bases de datos locales
+*db
+
+# Archivos temporales de Python
+__pycache__/
+*.py[cod]
+
+# Datos y configuración de instancias locales
+instance/

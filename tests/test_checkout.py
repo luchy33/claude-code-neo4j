@@ -4,6 +4,7 @@ import pytest
 
 from app.models import OrderStatus, PaymentStatus
 from app.models.repositories import FoodItemRepository, OrderRepository
+from app.models.repositories.db import query
 from tests.conftest import login
 
 FUTURE = (date.today() + timedelta(days=14)).isoformat()
@@ -56,6 +57,8 @@ def test_successful_checkout(ready, app, customer):
     assert [(g.label, g.guest_count, g.diet_notes) for g in order.guest_groups] == [
         ("Main group", 10, None), ("Gluten free", 2, "2 guests: gluten free")]  # empty row ignored
     assert [(l.quantity, l.unit_price_nok) for l in order.lines] == [(12, 189)]
+    with app.app_context():
+        assert query("MATCH (c:Cart) RETURN count(c) AS n")[0]["n"] == 0  # the saved cart is emptied
 
     page = ready.get(response.headers["Location"]).get_data(as_text=True)
     assert f"Order {order.order_number} was sent" in page and "Submitted" in page

@@ -11,8 +11,6 @@ class Config:
     NEO4J_USER = os.environ.get("NEO4J_USER", "neo4j")
     NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD", "ektemat-dev-db")  # dev default, see docker-compose.yml
     NEO4J_DATABASE = os.environ.get("NEO4J_DATABASE", "neo4j")
-    # Relative paths are resolved against the Flask instance folder.
-    UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", "uploads")
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB per request (image uploads)
     IMAGE_GENERATOR = os.environ.get("IMAGE_GENERATOR", "claude")  # "claude" or "fake"
     CSRF_ENABLED = True

@@ -4,7 +4,7 @@ from importlib import resources
 
 import click
 from flask import current_app
-from neo4j import GraphDatabase
+from neo4j import GraphDatabase, NotificationDisabledClassification
 
 from app.models.enums import Allergen, DietaryLabel, EventCategory
 
@@ -80,7 +80,9 @@ def close_driver(app) -> None:
 
 
 def init_app(app) -> None:
-    # The driver connects lazily, on the first query.
+    # The driver connects lazily, on the first query. "Unrecognized" notifications are switched off: on a fresh
+    # database they warn about relationship types (e.g. HAS_CART) that simply have not been created yet.
     app.extensions["neo4j"] = GraphDatabase.driver(
-        app.config["NEO4J_URI"], auth=(app.config["NEO4J_USER"], app.config["NEO4J_PASSWORD"]))
+        app.config["NEO4J_URI"], auth=(app.config["NEO4J_USER"], app.config["NEO4J_PASSWORD"]),
+        notifications_disabled_classifications=[NotificationDisabledClassification.UNRECOGNIZED])
     app.cli.add_command(init_db_command)

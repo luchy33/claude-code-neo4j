@@ -4,6 +4,7 @@ import pytest
 
 from app.models import EventCategory, FoodItem
 from app.models.repositories import FoodItemRepository
+from app.models.repositories.db import query
 from tests.conftest import login
 
 
@@ -152,3 +153,70 @@ def test_cart_with_csrf_enabled(make_app):
 
     client.post("/cart/update", data={f"qty-{item.id}": "15", "csrf_token": token(html)})
     assert "Estimated total: <strong>2835 NOK</strong>" in client.get("/cart").get_data(as_text=True)
+
+
+# ----------------------------------------------------------------- carts in Neo4j (plan 07)
+
+def saved_cart(app, customer) -> dict[int, int]:
+    with app.app_context():
+        records = query("MATCH (:Customer {id: $id})-[:HAS_CART]->(:Cart)-[h:HAS_ITEM]->(f:FoodItem)"
+                        " RETURN f.id AS item_id, h.quantity AS quantity", id=customer.id)
+    return {r["item_id"]: r["quantity"] for r in records}
+
+
+def test_saved_cart_comes_back_on_next_login_on_another_device(app, client, food_item, customer):
+    add(client, food_item, 12)
+    login(client, customer.email)
+    client.post("/account/logout")
+
+    other_device = app.test_client()
+    assert "Your cart is empty" in cart_page(other_device)
+    login(other_device, customer.email)
+    html = cart_page(other_device)
+    assert "Fish soup" in html and "Cart (1)" in html
+
+
+def test_guest_cart_is_merged_into_saved_cart(app, client, food_item, cake, customer):
+    login(client, customer.email)
+    add(client, food_item, 12)
+    add(client, cake, 5)
+    client.post("/account/logout")
+
+    add(client, food_item, 20)  # as a guest again
+    login(client, customer.email)
+
+    assert saved_cart(app, customer) == {food_item.id: 20, cake.id: 5}  # the guest's quantity wins
+    with app.app_context():
+        assert query("MATCH (c:Cart) RETURN count(c) AS n")[0]["n"] == 1  # the guest cart is gone
+
+
+def test_guest_token_cannot_open_a_customers_cart(app, client, food_item, customer):
+    login(client, customer.email)
+    add(client, food_item, 12)
+    with app.app_context():
+        [record] = query("MATCH (:Customer)-[:HAS_CART]->(c:Cart) RETURN c.token AS token")
+
+    stranger = app.test_client()
+    with stranger.session_transaction() as session:
+        session["cart_token"] = record["token"]
+    assert "Your cart is empty" in cart_page(stranger)
+
+
+def test_deleted_food_item_disappears_from_carts(app, client, food_item, cake):
+    add(client, cake, 5)
+    with app.app_context():
+        FoodItemRepository().delete(cake.id)
+
+    assert "Your cart is empty" in cart_page(client)
+
+
+def test_old_guest_carts_are_removed(app, client, food_item):
+    add(client, food_item, 12)
+    with app.app_context():
+        query("MATCH (c:Cart) SET c.updated_at = c.updated_at - duration({days: 31})")
+
+    add(app.test_client(), food_item, 10)  # any save cleans up
+
+    assert "Your cart is empty" in cart_page(client)
+    with app.app_context():
+        assert query("MATCH (c:Cart) RETURN count(c) AS n")[0]["n"] == 1

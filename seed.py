@@ -4,7 +4,6 @@ Usage: python seed.py
 WARNING: deletes all data in the Neo4j database first. Synthetic data only – no real customers.
 """
 import os
-import shutil
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -78,13 +77,12 @@ def main() -> None:
 
     app = create_app()
     with app.app_context():
-        print(f"Resetting Neo4j at {app.config['NEO4J_URI']} (all data and uploaded images are deleted).")
+        print(f"Resetting Neo4j at {app.config['NEO4J_URI']} (all data, pictures and carts are deleted).")
         try:
             verify_connection()
         except (ServiceUnavailable, AuthError) as error:
             sys.exit(f"Cannot reach Neo4j: {error}\nStart it with: docker compose up -d neo4j")
         init_db()
-        shutil.rmtree(app.config["UPLOAD_FOLDER"], ignore_errors=True)  # images belonged to the old data
 
         food_repo = FoodItemRepository()
         for item in FOOD_ITEMS:

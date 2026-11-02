@@ -38,12 +38,16 @@ pytest
 
 ### Neo4j
 
-The data lives in Neo4j 5, started by `docker compose up -d` ([docker-compose.yml](docker-compose.yml)):
+All data lives in Neo4j 5, including the food pictures (`Image` nodes) and shopping carts, started by `docker compose up -d` ([docker-compose.yml](docker-compose.yml)):
 
 - `neo4j` is the dev database: bolt on `bolt://localhost:7687`, and Neo4j Browser at http://localhost:7474 (user `neo4j`, password `NEO4J_PASSWORD` from `.env`, default `ektemat-dev-db`). Its data is kept in a Docker volume.
 - `neo4j-test` is used only by `pytest`, on port 7688. Every test empties it. If it is not running, the database tests are skipped with a hint.
 
-The graph model is in [schema.cypher](app/models/repositories/schema.cypher) and [docs/plans/06-neo4j.md](docs/plans/06-neo4j.md). Try this in Neo4j Browser:
+The graph model is in [schema.cypher](app/models/repositories/schema.cypher) and plans [06](docs/plans/06-neo4j.md) and [07](docs/plans/07-images-and-cart-in-neo4j.md).
+
+A guest's cart is found by a random token in the session. After login, the cart is linked to the customer (`HAS_CART`). It is still there after logging out and comes back at the next login, on any device; dishes added as a guest are merged into it.
+
+Try this in Neo4j Browser:
 
 ```cypher
 MATCH p=(:Customer)-[:PLACED]->(:Order)-[:HAS_LINE]->(:OrderLine)-[:OF_ITEM]->(:FoodItem) RETURN p
@@ -51,7 +55,7 @@ MATCH p=(:Customer)-[:PLACED]->(:Order)-[:HAS_LINE]->(:OrderLine)-[:OF_ITEM]->(:
 
 If you change `NEO4J_PASSWORD` after the first start, run `docker compose down -v` once (this deletes the dev data), then `docker compose up -d` and `python seed.py`.
 
-Seeded accounts: `admin@ektemat.example` (admin), `private.customer@example.com` and `lunch@corporate.example.com`. They all use the password set in `SEED_PASSWORD` (default `ektemat-dev`). `python seed.py` also deletes uploaded pictures, attaches the team's dish pictures from `seed_data/images/` and creates 5 demo orders covering every order and payment status, plus 3 demo questions (1 answered).
+Seeded accounts: `admin@ektemat.example` (admin), `private.customer@example.com` and `lunch@corporate.example.com`. They all use the password set in `SEED_PASSWORD` (default `ektemat-dev`). `python seed.py` also deletes all pictures and carts, attaches the team's dish pictures from `seed_data/images/` and creates 5 demo orders covering every order and payment status, plus 3 demo questions (1 answered).
 
 **After pulling a change to the repositories or `app/models/repositories/schema.cypher`, run `python seed.py` again.** There are no migrations.
 
@@ -67,12 +71,12 @@ On a food item's *Picture* page the admin can write an instruction, and Claude (
 ## Structure
 
 - `app/models/`: domain classes (dataclasses, no database code)
-- `app/models/repositories/`: the only code that touches storage (Neo4j database and image files)
+- `app/models/repositories/`: the only code that touches storage (Neo4j: data, pictures and carts)
 - `app/models/services/`: external services (the Claude image generator)
 - `app/controllers/`: blueprints `shop`, `account` and `admin`
 - `app/templates/`: Jinja2 views, one folder per blueprint
 - `tests/`: pytest
-- `docs/plans/`: agreed feature plans, [01-skeleton.md](docs/plans/01-skeleton.md), [02-auth-and-food-items.md](docs/plans/02-auth-and-food-items.md), [03-menu-and-cart.md](docs/plans/03-menu-and-cart.md), [04-orders.md](docs/plans/04-orders.md), [05-questions.md](docs/plans/05-questions.md), [06-neo4j.md](docs/plans/06-neo4j.md)
+- `docs/plans/`: agreed feature plans, [01-skeleton.md](docs/plans/01-skeleton.md), [02-auth-and-food-items.md](docs/plans/02-auth-and-food-items.md), [03-menu-and-cart.md](docs/plans/03-menu-and-cart.md), [04-orders.md](docs/plans/04-orders.md), [05-questions.md](docs/plans/05-questions.md), [06-neo4j.md](docs/plans/06-neo4j.md), [07-images-and-cart-in-neo4j.md](docs/plans/07-images-and-cart-in-neo4j.md)
 - `labb_claude_cowork/`: Lab 7 requirements and models (read-only)
 
 See [CLAUDE.md](CLAUDE.md) for the project rules.

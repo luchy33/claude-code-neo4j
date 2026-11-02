@@ -25,12 +25,12 @@ def neo4j_available():
 
 
 @pytest.fixture
-def make_app(neo4j_available, tmp_path):
+def make_app(neo4j_available):
     """make_app(**overrides): an app on an empty test database. Every call starts from scratch."""
     apps = []
 
     def make(**overrides):
-        app = create_app(TestConfig, UPLOAD_FOLDER=str(tmp_path / "uploads"), **overrides)
+        app = create_app(TestConfig, **overrides)
         with app.app_context():
             init_db()
         apps.append(app)

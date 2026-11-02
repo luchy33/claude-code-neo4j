@@ -81,3 +81,5 @@ def test_init_db_can_run_twice_and_empties_the_database(app, customer):
         assert CustomerRepository().list_all() == []
         values = query("MATCH (e:EventCategory) RETURN count(e) AS n")[0]["n"]
         assert values == len(EventCategory)
+        constraints = {r["name"] for r in query("SHOW CONSTRAINTS YIELD name")}
+        assert {"image_name", "cart_token", "customer_email"} <= constraints

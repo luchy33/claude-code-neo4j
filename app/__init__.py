@@ -1,5 +1,3 @@
-import os
-
 from flask import Flask
 
 from config import Config
@@ -10,10 +8,6 @@ def create_app(config_class=Config, **overrides):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_class)
     app.config.update(overrides)
-
-    os.makedirs(app.instance_path, exist_ok=True)
-    if not os.path.isabs(app.config["UPLOAD_FOLDER"]):
-        app.config["UPLOAD_FOLDER"] = os.path.join(app.instance_path, app.config["UPLOAD_FOLDER"])
 
     from app.models.repositories import db
     db.init_app(app)

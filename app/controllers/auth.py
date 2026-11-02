@@ -5,14 +5,14 @@ from typing import Optional
 
 from flask import abort, current_app, g, make_response, redirect, request, session, url_for
 
-from app.models.repositories import CustomerRepository, SessionCartRepository
+from app.models.repositories import CartRepository, CustomerRepository
 
 
 def init_app(app) -> None:
     app.before_request(load_logged_in_user)
     app.before_request(check_csrf)
     app.jinja_env.globals["csrf_token"] = csrf_token
-    app.context_processor(lambda: {"cart_count": SessionCartRepository().load().item_count})
+    app.context_processor(lambda: {"cart_count": CartRepository().load().item_count})
 
 
 def load_logged_in_user() -> None:
@@ -21,15 +21,16 @@ def load_logged_in_user() -> None:
 
 
 def log_in(customer) -> None:
-    carts = SessionCartRepository()
-    cart = carts.load()  # keep the cart: customers fill it before logging in to order (C3)
+    carts = CartRepository()
+    guest_cart = carts.load()  # keep the cart: customers fill it before logging in to order (C3)
+    carts.clear()
     session.clear()  # new session on login, so an old session id cannot be reused
     session["customer_id"] = customer.id
-    carts.save(cart)
+    carts.merge_into_customer(guest_cart)  # added to the cart the customer saved earlier, if any
 
 
 def log_out() -> None:
-    session.clear()  # also empties the cart, so the next person on a shared computer starts clean
+    session.clear()  # the customer's cart stays saved for the next login; this browser starts clean
 
 
 def login_required(view):

@@ -11,7 +11,7 @@ It has a customer shop (menu by event, cart, orders, questions) and an admin pan
 ## MVC layout
 
 - `app/models/` – domain classes (FoodItem, Order, OrderLine, Customer, Question …) and repositories
-- `app/models/repositories/` – the only code that touches storage: Neo4j (`db.py`, `schema.cypher`), image files (`ImageStore`) and the session cart (`SessionCartRepository`)
+- `app/models/repositories/` – the only code that touches storage: everything is in Neo4j (`db.py`, `schema.cypher`), including food pictures (`ImageStore`) and carts (`CartRepository`)
 - `app/models/services/` – external services: the Claude image generator (`claude-opus-5-5`, draws SVG)
 - `app/controllers/` – Flask blueprints: `shop`, `account`, `admin`; `auth.py` has login/admin decorators and CSRF
 - `app/templates/` – Jinja2 views, one folder per blueprint
@@ -24,7 +24,7 @@ It has a customer shop (menu by event, cart, orders, questions) and an admin pan
 python -m venv .venv && source .venv/bin/activate   # Windows PowerShell: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 docker compose up -d         # Neo4j dev (7687, browser 7474) + neo4j-test (7688)
-python seed.py               # resets DB + uploads: synthetic food items, one admin, test customers
+python seed.py               # resets Neo4j (data, pictures, carts): synthetic food items, one admin, test customers
 flask --app app run          # http://127.0.0.1:5000
 pytest
 ```
@@ -39,7 +39,7 @@ pytest
 - Tests never call the Claude API; they use `FakeImageGenerator` (`IMAGE_GENERATOR=fake`).
 - Every POST form includes `csrf_token()`; admin routes use `@admin_required`.
 - Generated or uploaded images are untrusted: SVG only via `sanitise_svg`, served only through `image_response`.
-- The cart lives in the session and holds only item ids and quantities; prices always come from `FoodItemRepository`. Minimum-order rules live in `Cart` (`app/models/cart.py`).
+- The cart lives in Neo4j (`(:Cart)-[:HAS_ITEM {quantity}]->(:FoodItem)`), linked to the customer after login (`HAS_CART`); the session holds only a guest cart token. It holds only item ids and quantities; prices always come from `FoodItemRepository`. Minimum-order rules live in `Cart` (`app/models/cart.py`).
 - Order status changes only through `Order.change_status` (allowed transitions in `Order.ALLOWED_TRANSITIONS`); prices are copied into `OrderLine.unit_price_nok` when the order is placed.
 - Synthetic data only.
 - Use British English in code, comments and UI text.

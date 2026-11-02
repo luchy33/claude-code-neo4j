@@ -6,7 +6,7 @@ from flask import Blueprint, abort, flash, g, redirect, render_template, request
 
 from app.controllers.auth import image_response, login_required
 from app.models import (Cart, CartError, DeliveryMethod, EventCategory, GuestGroup, ImageError, Order)
-from app.models.repositories import FoodItemRepository, ImageStore, OrderRepository, SessionCartRepository
+from app.models.repositories import FoodItemRepository, ImageStore, OrderRepository, CartRepository
 
 bp = Blueprint("shop", __name__)
 
@@ -43,7 +43,7 @@ def add_to_cart():
     if item is None or not item.published:
         abort(404)
     quantity = _parse_quantity(request.form.get("quantity"))
-    repo = SessionCartRepository()
+    repo = CartRepository()
     cart = repo.load()
     try:
         if quantity is None:
@@ -61,7 +61,7 @@ def add_to_cart():
 
 def _cart_lines():
     """Load the cart with current prices; dishes that left the menu are dropped and saved."""
-    repo = SessionCartRepository()
+    repo = CartRepository()
     cart = repo.load()
     lines, removed = cart.lines(FoodItemRepository().get_many(cart.quantities))
     if removed:
@@ -98,14 +98,14 @@ def update_cart():
         original, lines, _ = _cart_lines()
         return render_template("shop/cart.html", lines=lines, total_nok=original.total_nok(lines),
                                errors=errors, entered=entered), 400
-    SessionCartRepository().save(cart)
+    CartRepository().save(cart)
     flash("Your cart was updated.", "success")
     return redirect(url_for("shop.cart"))
 
 
 @bp.route("/cart/remove/<int:item_id>", methods=["POST"])
 def remove_from_cart(item_id):
-    repo = SessionCartRepository()
+    repo = CartRepository()
     cart = repo.load()
     cart.remove(item_id)
     repo.save(cart)
@@ -189,6 +189,6 @@ def checkout():
         return _render_checkout(lines, cart, form, errors, status=400)
 
     OrderRepository().add(order)
-    SessionCartRepository().clear()
+    CartRepository().clear()
     flash(f"Order {order.order_number} was sent. Ekte Mat will confirm it.", "success")
     return redirect(url_for("account.order_detail", order_id=order.id))

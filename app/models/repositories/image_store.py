@@ -1,18 +1,15 @@
-"""File storage for food images. The only code that reads or writes image files.
+"""Storage for food images. The only code that reads or writes image data.
 
-Layout under UPLOAD_FOLDER:
-  pending/<token>.<ext>          uploaded or generated, waiting for the admin to save or discard
-  food/<item_id>-<uuid>.<ext>    saved images, served by the shop
+Images are (:Image {name, data, pending, created_at}) nodes in Neo4j:
+  pending: <token>.<ext>          uploaded or generated, waiting for the admin to save or discard
+  saved:   <item_id>-<uuid>.<ext> served by the shop, linked from the dish with HAS_IMAGE
 """
-import os
 import re
 import uuid
-from pathlib import Path
-from typing import Optional
-
-from flask import current_app
+from datetime import datetime, timedelta
 
 from app.models.errors import ImageError
+from app.models.repositories.db import query, to_db_time
 
 UPLOAD_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 SERVED_EXTENSIONS = UPLOAD_EXTENSIONS | {"svg"}  # svg only from the sanitised generator
@@ -20,6 +17,7 @@ TOKEN_RE = re.compile(r"^[0-9a-f]{32}\.(jpg|jpeg|png|webp|svg)$")
 FILENAME_RE = re.compile(r"^\d+-[0-9a-f]{32}\.(jpg|jpeg|png|webp|svg)$")
 MIME_TYPES = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png",
               "webp": "image/webp", "svg": "image/svg+xml"}
+PENDING_LIFETIME = timedelta(days=1)  # previews the admin never saved or discarded are removed after this
 
 
 def _matches_magic(data: bytes, ext: str) -> bool:
@@ -37,17 +35,6 @@ def extension_of(name: str) -> str:
 
 
 class ImageStore:
-    def __init__(self, root: Optional[str] = None):
-        self.root = Path(root or current_app.config["UPLOAD_FOLDER"])
-
-    @property
-    def pending_dir(self) -> Path:
-        return self.root / "pending"
-
-    @property
-    def food_dir(self) -> Path:
-        return self.root / "food"
-
     @staticmethod
     def validate_upload(filename: str, data: bytes) -> str:
         """Return the normalised extension, or raise ImageError."""
@@ -63,53 +50,47 @@ class ImageStore:
     def save_pending(self, data: bytes, ext: str) -> str:
         if ext not in SERVED_EXTENSIONS:
             raise ImageError("Unsupported image type.")
-        self.pending_dir.mkdir(parents=True, exist_ok=True)
+        now = to_db_time(datetime.now())
+        query("MATCH (i:Image {pending: true}) WHERE i.created_at < $cutoff DETACH DELETE i",
+              cutoff=now - PENDING_LIFETIME)
         token = f"{uuid.uuid4().hex}.{ext}"
-        (self.pending_dir / token).write_bytes(data)
+        query("CREATE (:Image {name: $name, data: $data, pending: true, created_at: $now})",
+              name=token, data=data, now=now)
         return token
 
-    def pending_path(self, token: str) -> Path:
+    def read_pending(self, token: str) -> bytes:
         if not TOKEN_RE.match(token or ""):
             raise ImageError("Unknown image.")
-        path = self.pending_dir / token
-        if not path.is_file():
+        records = query("MATCH (i:Image {name: $name, pending: true}) RETURN i.data AS data", name=token)
+        if not records:
             raise ImageError("The preview has expired. Please upload or generate the picture again.")
-        return path
-
-    def read_pending(self, token: str) -> bytes:
-        return self.pending_path(token).read_bytes()
+        return records[0]["data"]
 
     def promote(self, token: str, item_id: int) -> str:
-        source = self.pending_path(token)
-        self.food_dir.mkdir(parents=True, exist_ok=True)
+        """Turn a pending image into a saved one. FoodItemRepository.set_image links it to the dish."""
+        if not TOKEN_RE.match(token or ""):
+            raise ImageError("Unknown image.")
         filename = f"{item_id}-{uuid.uuid4().hex}.{extension_of(token)}"
-        os.replace(source, self.food_dir / filename)
+        if not query("MATCH (i:Image {name: $token, pending: true}) SET i.name = $filename, i.pending = false"
+                     " RETURN i.name AS name", token=token, filename=filename):
+            raise ImageError("The preview has expired. Please upload or generate the picture again.")
         return filename
 
     def discard(self, token: str) -> None:
-        try:
-            self.pending_path(token).unlink()
-        except ImageError:
-            pass
-
-    def food_path(self, filename: str) -> Path:
-        if not FILENAME_RE.match(filename or ""):
-            raise ImageError("Unknown image.")
-        path = self.food_dir / filename
-        if not path.is_file():
-            raise ImageError("Unknown image.")
-        return path
+        if TOKEN_RE.match(token or ""):
+            query("MATCH (i:Image {name: $name, pending: true}) DETACH DELETE i", name=token)
 
     def read_food(self, filename: str) -> bytes:
-        return self.food_path(filename).read_bytes()
+        if not FILENAME_RE.match(filename or ""):
+            raise ImageError("Unknown image.")
+        records = query("MATCH (i:Image {name: $name, pending: false}) RETURN i.data AS data", name=filename)
+        if not records:
+            raise ImageError("Unknown image.")
+        return records[0]["data"]
 
-    def delete(self, filename: Optional[str]) -> None:
-        if not filename:
-            return
-        try:
-            self.food_path(filename).unlink()
-        except ImageError:
-            pass
+    def delete(self, filename) -> None:
+        if filename and FILENAME_RE.match(filename):
+            query("MATCH (i:Image {name: $name, pending: false}) DETACH DELETE i", name=filename)
 
     @staticmethod
     def mime_type(name: str) -> str:

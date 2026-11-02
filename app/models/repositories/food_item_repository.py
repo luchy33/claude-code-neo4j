@@ -36,7 +36,14 @@ class FoodItemRepository:
         write(save)
 
     def set_image(self, item_id: int, filename: Optional[str]) -> None:
-        query("MATCH (f:FoodItem {id: $id}) SET f.image_filename = $filename", id=item_id, filename=filename)
+        """Set the dish's front picture and link it with HAS_IMAGE (the old link is removed)."""
+        def save(tx):
+            tx.run("MATCH (f:FoodItem {id: $id}) SET f.image_filename = $filename"
+                   " WITH f OPTIONAL MATCH (f)-[r:HAS_IMAGE]->() DELETE r", id=item_id, filename=filename).consume()
+            tx.run("MATCH (f:FoodItem {id: $id}), (i:Image {name: $filename}) MERGE (f)-[:HAS_IMAGE]->(i)",
+                   id=item_id, filename=filename).consume()
+
+        write(save)
 
     def delete(self, item_id: int) -> None:
         if query("MATCH (:OrderLine)-[:OF_ITEM]->(f:FoodItem {id: $id}) RETURN f LIMIT 1", id=item_id):

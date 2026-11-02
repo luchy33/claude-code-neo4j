@@ -1,11 +1,11 @@
 import io
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 from app.models import ImageError
-from app.models.repositories import FoodItemRepository
+from app.models.repositories import FoodItemRepository, ImageStore
+from app.models.repositories.db import query
 from app.models.services.image_generator import ClaudeImageGenerator, FakeImageGenerator, sanitise_svg
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64  # header is enough for the type check
@@ -18,9 +18,10 @@ def upload(client, item_id, data, filename):
                        data={"image": (io.BytesIO(data), filename)}, content_type="multipart/form-data")
 
 
-def pending_files(app) -> list[Path]:
-    folder = Path(app.config["UPLOAD_FOLDER"]) / "pending"
-    return list(folder.iterdir()) if folder.exists() else []
+def pending_images(app) -> dict[str, bytes]:
+    """Previews waiting in Neo4j: name -> image data."""
+    with app.app_context():
+        return {r["name"]: r["data"] for r in query("MATCH (i:Image {pending: true}) RETURN i.name AS name, i.data AS data")}
 
 
 def get_item(app, item_id):
@@ -35,11 +36,11 @@ def test_upload_goes_to_preview_without_saving(admin_client, app, food_item):
 
     assert response.status_code == 302 and response.headers["Location"].endswith("/image/preview")
     assert get_item(app, food_item.id).image_filename is None
-    [pending] = pending_files(app)
+    [name] = pending_images(app)
     preview = admin_client.get(f"/admin/food-items/{food_item.id}/image/preview").get_data(as_text=True)
-    assert "not saved yet" in preview and pending.name in preview
+    assert "not saved yet" in preview and name in preview
 
-    served = admin_client.get(f"/admin/images/pending/{pending.name}")
+    served = admin_client.get(f"/admin/images/pending/{name}")
     assert served.status_code == 200 and served.data == PNG and served.mimetype == "image/png"
 
 
@@ -50,7 +51,7 @@ def test_save_stores_image_and_shop_serves_it(admin_client, app, food_item):
     assert response.status_code == 302
     filename = get_item(app, food_item.id).image_filename
     assert filename and filename.startswith(f"{food_item.id}-") and filename.endswith(".jpg")
-    assert pending_files(app) == []
+    assert pending_images(app) == {}
 
     served = admin_client.get(f"/images/{filename}")
     assert served.status_code == 200 and served.data == JPEG
@@ -77,7 +78,7 @@ def test_discard_removes_pending_file(admin_client, app, food_item):
     upload(admin_client, food_item.id, PNG, "soup.png")
     admin_client.post(f"/admin/food-items/{food_item.id}/image/discard")
 
-    assert pending_files(app) == []
+    assert pending_images(app) == {}
     assert get_item(app, food_item.id).image_filename is None
 
 
@@ -91,7 +92,7 @@ def test_bad_uploads_are_rejected(admin_client, app, food_item, data, filename, 
 
     assert response.headers["Location"].endswith("/image")
     assert message in admin_client.get(response.headers["Location"]).get_data(as_text=True)
-    assert pending_files(app) == []
+    assert pending_images(app) == {}
 
 
 def test_too_large_upload_is_refused(admin_client, food_item):
@@ -113,6 +114,29 @@ def test_served_image_names_are_validated(client):
     assert client.get("/images/not-an-image.txt").status_code == 404
 
 
+def test_saved_picture_is_linked_and_the_old_one_is_deleted(admin_client, app, food_item):
+    for data, name in ((PNG, "soup.png"), (JPEG, "soup.jpg")):
+        upload(admin_client, food_item.id, data, name)
+        admin_client.post(f"/admin/food-items/{food_item.id}/image/save")
+
+    filename = get_item(app, food_item.id).image_filename
+    with app.app_context():
+        [linked] = query("MATCH (:FoodItem {id: $id})-[:HAS_IMAGE]->(i:Image) RETURN i.name AS name",
+                         id=food_item.id)
+        assert linked["name"] == filename and filename.endswith(".jpg")
+        assert query("MATCH (i:Image) RETURN count(i) AS n")[0]["n"] == 1
+
+
+def test_old_previews_are_removed(app):
+    with app.app_context():
+        store = ImageStore()
+        old = store.save_pending(PNG, "png")
+        query("MATCH (i:Image {name: $name}) SET i.created_at = i.created_at - duration({days: 2})", name=old)
+        new = store.save_pending(PNG, "png")
+
+    assert set(pending_images(app)) == {new}
+
+
 # ----------------------------------------------------------------- AI instruction (fake generator)
 
 def test_generate_previews_then_saves_svg(admin_client, app, food_item):
@@ -120,8 +144,8 @@ def test_generate_previews_then_saves_svg(admin_client, app, food_item):
                                  data={"instruction": "A bowl of fish soup", "base": "none"})
 
     assert response.headers["Location"].endswith("/image/preview")
-    [pending] = pending_files(app)
-    assert pending.suffix == ".svg" and b"A bowl of fish soup" in pending.read_bytes()
+    [(name, data)] = pending_images(app).items()
+    assert name.endswith(".svg") and b"A bowl of fish soup" in data
     assert get_item(app, food_item.id).image_filename is None
 
     admin_client.post(f"/admin/food-items/{food_item.id}/image/save")
@@ -134,14 +158,14 @@ def test_refine_sends_pending_picture_to_generator(admin_client, app, food_item)
     generator: FakeImageGenerator = app.extensions["image_generator"]
     admin_client.post(f"/admin/food-items/{food_item.id}/image/generate",
                       data={"instruction": "Fish soup", "base": "none"})
-    first_svg = pending_files(app)[0].read_bytes()
+    [first_svg] = pending_images(app).values()
 
     admin_client.post(f"/admin/food-items/{food_item.id}/image/generate",
                       data={"instruction": "Make the bowl blue", "base": "pending"})
 
     instruction, current, current_type = generator.calls[-1]
     assert instruction == "Make the bowl blue" and current == first_svg and current_type == "svg"
-    assert len(pending_files(app)) == 1  # the older preview was cleaned up
+    assert len(pending_images(app)) == 1  # the older preview was cleaned up
 
 
 def test_modify_current_sends_saved_picture(admin_client, app, food_item):
@@ -160,7 +184,7 @@ def test_empty_instruction_is_rejected(admin_client, app, food_item):
                                  data={"instruction": "  ", "base": "none"}, follow_redirects=True)
 
     assert "Write an instruction" in response.get_data(as_text=True)
-    assert pending_files(app) == []
+    assert pending_images(app) == {}
 
 
 # ----------------------------------------------------------------- SVG sanitising
